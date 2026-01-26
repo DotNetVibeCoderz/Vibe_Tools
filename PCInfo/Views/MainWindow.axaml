@@ -1,0 +1,132 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:PCInfo.ViewModels"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="550"
+        x:Class="PCInfo.Views.MainWindow"
+        x:DataType="vm:MainViewModel"
+        Title="PCInfo - Jacky's System Tool"
+        TransparencyLevelHint="AcrylicBlur"
+        Background="Transparent"
+        ExtendClientAreaToDecorationsHint="True">
+
+    <Design.DataContext>
+        <vm:MainViewModel/>
+    </Design.DataContext>
+
+    <Panel>
+        <ExperimentalAcrylicBorder IsHitTestVisible="False">
+            <ExperimentalAcrylicBorder.Material>
+                <ExperimentalAcrylicMaterial
+                    BackgroundSource="Digger"
+                    TintColor="#1e1e1e"
+                    TintOpacity="1"
+                    MaterialOpacity="0.85" />
+            </ExperimentalAcrylicBorder.Material>
+        </ExperimentalAcrylicBorder>
+
+        <Grid RowDefinitions="30, Auto, *">
+            <!-- Title Bar Area (Draggable) -->
+            <TextBlock Grid.Row="0" Text="PC Info Ultimate" VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="Gray" IsHitTestVisible="False"/>
+
+            <!-- Header -->
+            <StackPanel Grid.Row="1" Margin="20" Orientation="Horizontal" Spacing="20">
+                <Border Width="64" Height="64" CornerRadius="32" Background="#4a90e2">
+                    <TextBlock Text="PC" VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="24" FontWeight="Bold" Foreground="White"/>
+                </Border>
+                <StackPanel VerticalAlignment="Center">
+                    <TextBlock Text="{Binding OsInfo}" FontSize="24" FontWeight="SemiBold" Foreground="White"/>
+                    <TextBlock Text="{Binding StatusMessage}" FontSize="14" Foreground="#aaaaaa"/>
+                </StackPanel>
+                <ProgressBar IsIndeterminate="True" IsVisible="{Binding IsLoading}" Width="100" VerticalAlignment="Center"/>
+            </StackPanel>
+
+            <!-- Main Content -->
+            <TabControl Grid.Row="2" Margin="0,0,0,0" Padding="20">
+                <TabItem Header="Dashboard" FontSize="16">
+                    <Grid ColumnDefinitions="*, *" RowDefinitions="*, *" Margin="0,10,0,0">
+                        <!-- CPU Card -->
+                        <Border Grid.Row="0" Grid.Column="0" Margin="10" Background="#2d2d2d" CornerRadius="10" Padding="20">
+                            <StackPanel>
+                                <TextBlock Text="CPU" FontWeight="Bold" Foreground="#4a90e2" Margin="0,0,0,10"/>
+                                <TextBlock Text="{Binding CpuInfo}" Foreground="White" TextWrapping="Wrap"/>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- RAM Card -->
+                        <Border Grid.Row="0" Grid.Column="1" Margin="10" Background="#2d2d2d" CornerRadius="10" Padding="20">
+                            <StackPanel>
+                                <TextBlock Text="Memory (RAM)" FontWeight="Bold" Foreground="#e24a90" Margin="0,0,0,10"/>
+                                <TextBlock Text="{Binding RamInfo}" Foreground="White" TextWrapping="Wrap"/>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- GPU Card -->
+                        <Border Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Margin="10" Background="#2d2d2d" CornerRadius="10" Padding="20">
+                            <StackPanel>
+                                <TextBlock Text="Graphics (GPU)" FontWeight="Bold" Foreground="#50e24a" Margin="0,0,0,10"/>
+                                <TextBlock Text="{Binding GpuInfo}" Foreground="White" TextWrapping="Wrap"/>
+                            </StackPanel>
+                        </Border>
+                    </Grid>
+                </TabItem>
+
+                <TabItem Header="Storage" FontSize="16">
+                    <ScrollViewer>
+                        <ItemsControl ItemsSource="{Binding DriveList}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Margin="0,10,0,0" Background="#2d2d2d" CornerRadius="5" Padding="15">
+                                        <StackPanel>
+                                            <TextBlock Text="{Binding Name}" FontWeight="Bold" Foreground="White"/>
+                                            <TextBlock Text="{Binding Description}" Foreground="Gray"/>
+                                        </StackPanel>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </TabItem>
+
+                <TabItem Header="Network" FontSize="16">
+                    <Grid RowDefinitions="Auto, *">
+                        <!-- Network Summary Header -->
+                        <Border Grid.Row="0" Margin="0,0,0,10" Background="#2d2d2d" CornerRadius="10" Padding="15">
+                             <Grid ColumnDefinitions="*, *">
+                                 <StackPanel Grid.Column="0">
+                                     <TextBlock Text="Network Status" FontWeight="Bold" Foreground="#4a90e2" Margin="0,0,0,5"/>
+                                     <TextBlock Text="{Binding InternetStatus}" Foreground="White" FontSize="14"/>
+                                 </StackPanel>
+                                 <StackPanel Grid.Column="1">
+                                     <TextBlock Text="Domain / Host" FontWeight="Bold" Foreground="#e24a90" Margin="0,0,0,5"/>
+                                     <TextBlock Text="{Binding DomainInfo}" Foreground="White" FontSize="14"/>
+                                 </StackPanel>
+                             </Grid>
+                        </Border>
+
+                        <!-- Network Interfaces List -->
+                        <ScrollViewer Grid.Row="1">
+                            <ItemsControl ItemsSource="{Binding NetworkInterfaces}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Margin="0,5,0,5" Background="#333333" CornerRadius="5" Padding="15">
+                                            <Grid ColumnDefinitions="*, Auto">
+                                                <StackPanel Grid.Column="0">
+                                                    <TextBlock Text="{Binding Name}" FontWeight="Bold" Foreground="White" FontSize="16"/>
+                                                    <TextBlock Text="{Binding Description}" Foreground="Gray" TextWrapping="Wrap" Margin="0,5,0,0"/>
+                                                </StackPanel>
+                                                <!-- Icon -->
+                                                <TextBlock Grid.Column="1" Text="🌐" FontSize="24" VerticalAlignment="Center" Opacity="0.5"/>
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </ScrollViewer>
+                    </Grid>
+                </TabItem>
+            </TabControl>
+        </Grid>
+    </Panel>
+</Window>
