@@ -1,0 +1,81 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="600"
+        Width="400" Height="600"
+        x:Class="WeatherApp.MainWindow"
+        Title="Jacky's Weather App"
+        TransparencyLevelHint="AcrylicBlur"
+        Background="Transparent"
+        ExtendClientAreaToDecorationsHint="True">
+
+    <Panel>
+        <!-- Dynamic Background -->
+        <Border Name="MainBackground">
+            <Border.Background>
+                <LinearGradientBrush StartPoint="0%,0%" EndPoint="0%,100%">
+                    <GradientStop Offset="0" Color="#4facfe"/>
+                    <GradientStop Offset="1" Color="#00f2fe"/>
+                </LinearGradientBrush>
+            </Border.Background>
+            <Border.Transitions>
+                <Transitions>
+                   <!-- Transisi warna background belum support sempurna di simple XAML, kita handle di code behind atau pakai SolidColorBrush transition -->
+                </Transitions>
+            </Border.Transitions>
+        </Border>
+
+        <!-- Glass Effect Overlay -->
+        <Border Background="#20FFFFFF" CornerRadius="0" />
+
+        <Grid RowDefinitions="Auto, *, Auto" Margin="20,40,20,20">
+            
+            <!-- Header / City Selection -->
+            <StackPanel Grid.Row="0" HorizontalAlignment="Center">
+                <TextBlock Text="PILIH KOTA" FontSize="12" Foreground="#AAFFFFFF" HorizontalAlignment="Center" LetterSpacing="2"/>
+                <ComboBox Name="CityComboBox" HorizontalAlignment="Center" Width="200" Margin="0,10,0,0" SelectedIndex="0">
+                    <!-- Items akan diisi via Code Behind -->
+                </ComboBox>
+            </StackPanel>
+
+            <!-- Main Content (Weather Icon & Info) -->
+            <StackPanel Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Center">
+                
+                <!-- Weather Animation Area -->
+                <Panel Width="150" Height="150" Margin="0,0,0,20">
+                    <!-- SUN (Default) -->
+                    <Viewbox Name="SunIcon" IsVisible="True">
+                         <Path Fill="#FFD700" Data="M12,7A5,5 0 0,1 17,12A5,5 0 0,1 12,17A5,5 0 0,1 7,12A5,5 0 0,1 12,7M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2Z" />
+                    </Viewbox>
+                    
+                    <!-- CLOUD (For Cloudy/Rain) -->
+                    <Viewbox Name="CloudIcon" IsVisible="False">
+                        <Path Fill="#DDDDDD" Data="M19.35,10.04C18.67,6.59 15.64,4 12,4C9.11,4 6.6,5.64 5.35,8.04C2.34,8.36 0,10.91 0,14A6,6 0 0,0 6,20H19A5,5 0 0,0 24,15C24,12.36 21.95,10.22 19.35,10.04Z" />
+                    </Viewbox>
+
+                    <!-- RAIN (Overlay on Cloud) -->
+                    <Viewbox Name="RainIcon" IsVisible="False" Margin="0,10,0,0">
+                         <Path Fill="#80DEEA" Data="M 9,10 L 7,15 M 12,10 L 10,15 M 15,10 L 13,15" Stroke="#80DEEA" StrokeThickness="2"/>
+                    </Viewbox>
+                </Panel>
+
+                <TextBlock Name="TempText" Text="--°C" Classes="Title" FontSize="64"/>
+                <TextBlock Name="DescText" Text="Loading..." Classes="Subtitle"/>
+                <TextBlock Name="TimeText" Text="--:--" FontSize="14" Foreground="#CCFFFFFF" HorizontalAlignment="Center" Margin="0,5"/>
+            </StackPanel>
+
+            <!-- Footer Details -->
+            <Border Grid.Row="2" Background="#30000000" CornerRadius="15" Padding="20">
+                <Grid ColumnDefinitions="*, *" RowDefinitions="Auto, Auto">
+                    <TextBlock Text="ANGIN" Grid.Column="0" Grid.Row="0" Foreground="#AAFFFFFF" FontSize="10" HorizontalAlignment="Center"/>
+                    <TextBlock Name="WindText" Text="-- km/h" Grid.Column="0" Grid.Row="1" Foreground="White" FontWeight="Bold" HorizontalAlignment="Center"/>
+
+                    <TextBlock Text="KOORDINAT" Grid.Column="1" Grid.Row="0" Foreground="#AAFFFFFF" FontSize="10" HorizontalAlignment="Center"/>
+                    <TextBlock Name="CoordText" Text="Lat/Lon" Grid.Column="1" Grid.Row="1" Foreground="White" FontWeight="Bold" HorizontalAlignment="Center"/>
+                </Grid>
+            </Border>
+
+        </Grid>
+    </Panel>
+</Window>

@@ -1,0 +1,21 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="WeatherApp.App">
+    <Application.Styles>
+        <FluentTheme />
+        <!-- Style untuk TextBlock agar terlihat konsisten -->
+        <Style Selector="TextBlock.Title">
+            <Setter Property="FontSize" Value="32"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+            <Setter Property="Margin" Value="0,10,0,5"/>
+        </Style>
+        <Style Selector="TextBlock.Subtitle">
+            <Setter Property="FontSize" Value="18"/>
+            <Setter Property="Foreground" Value="#EEEEEE"/>
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+            <Setter Property="Margin" Value="0,5"/>
+        </Style>
+    </Application.Styles>
+</Application>
