@@ -1,0 +1,31 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="250"
+        Width="450" Height="250"
+        x:Class="Compressor.Views.CompressDialog"
+        Title="Compress"
+        WindowStartupLocation="CenterOwner">
+  <Grid RowDefinitions="Auto, Auto, Auto, *" Margin="20">
+    <StackPanel Grid.Row="0" Spacing="5">
+      <TextBlock Text="Destination File Path:"/>
+      <TextBox Name="PathBox"/>
+    </StackPanel>
+    
+    <StackPanel Grid.Row="1" Spacing="5" Margin="0,15,0,0">
+      <TextBlock Text="Compression Format:"/>
+      <ComboBox Name="FormatBox" SelectedIndex="0" HorizontalAlignment="Stretch">
+        <ComboBoxItem>Zip</ComboBoxItem>
+        <ComboBoxItem>7Zip</ComboBoxItem>
+        <ComboBoxItem>Rar</ComboBoxItem>
+        <ComboBoxItem>Cab</ComboBoxItem>
+      </ComboBox>
+    </StackPanel>
+
+    <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10" Margin="0,20,0,0">
+      <Button Name="CompressButton" Click="OnCompressClick" Classes="accent">Compress</Button>
+      <Button Click="OnCancelClick">Cancel</Button>
+    </StackPanel>
+  </Grid>
+</Window>

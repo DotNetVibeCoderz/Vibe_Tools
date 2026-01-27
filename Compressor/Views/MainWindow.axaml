@@ -1,0 +1,147 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:Compressor.ViewModels"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:models="using:Compressor.Models"
+        mc:Ignorable="d" d:DesignWidth="900" d:DesignHeight="600"
+        x:Class="Compressor.Views.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Icon=""
+        Title="Compressor - File Explorer">
+
+    <Design.DataContext>
+        <vm:MainWindowViewModel/>
+    </Design.DataContext>
+
+    <Window.Styles>
+        <!-- Style untuk TreeViewItem agar support Binding IsExpanded -->
+        <Style Selector="TreeViewItem">
+            <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}"/>
+        </Style>
+    </Window.Styles>
+
+    <Grid RowDefinitions="Auto, Auto, *, Auto">
+        
+        <!-- Menu Bar -->
+        <Menu Grid.Row="0">
+            <MenuItem Header="_File">
+                <MenuItem Header="_Exit" Click="OnExitClick"/>
+            </MenuItem>
+            <MenuItem Header="_Help">
+                <MenuItem Header="_About" Click="OnAboutClick"/>
+            </MenuItem>
+        </Menu>
+
+        <!-- Toolbar -->
+        <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="10" Margin="5">
+            <Button Command="{Binding CreateFolderCommand}" ToolTip.Tip="New Folder">
+                <StackPanel Orientation="Horizontal" Spacing="5">
+                    <PathIcon Data="M10,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V8C22,6.89 21.1,6 20,6H12L10,4Z"/>
+                    <TextBlock Text="New Folder"/>
+                </StackPanel>
+            </Button>
+            <Button Command="{Binding CreateFileCommand}" CommandParameter="Text" ToolTip.Tip="New Text File">
+                 <StackPanel Orientation="Horizontal" Spacing="5">
+                    <PathIcon Data="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"/>
+                    <TextBlock Text="New Txt"/>
+                </StackPanel>
+            </Button>
+            <Button Command="{Binding CreateFileCommand}" CommandParameter="Word" ToolTip.Tip="New Word File">
+                <StackPanel Orientation="Horizontal" Spacing="5">
+                    <PathIcon Data="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M15.2,20H13.8L12,13.2L10.2,20H8.8L6.6,11H8L9.4,17.8L11.3,11H12.7L14.6,17.8L16,11H17.4L15.2,20Z"/>
+                    <TextBlock Text="Doc"/>
+                </StackPanel>
+            </Button>
+            <Button Command="{Binding CreateFileCommand}" CommandParameter="Excel" ToolTip.Tip="New Excel File">
+                <StackPanel Orientation="Horizontal" Spacing="5">
+                    <PathIcon Data="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M6,20V4H13V9H18V20H6M11.5,17L10,14.5L8.5,17H7L9.25,13.5L7,10H8.5L10,12.5L11.5,10H13L10.75,13.5L13,17H11.5Z"/>
+                    <TextBlock Text="Xls"/>
+                </StackPanel>
+            </Button>
+        </StackPanel>
+
+        <!-- Main Content Area -->
+        <Grid Grid.Row="2" ColumnDefinitions="250, 5, *">
+            
+            <!-- Left: Tree View (Folder Navigation) -->
+            <!-- Added SelectionChanged event for robust navigation -->
+            <TreeView Grid.Column="0" 
+                      ItemsSource="{Binding Roots}" 
+                      SelectedItem="{Binding SelectedFolder, Mode=TwoWay}"
+                      SelectionChanged="OnTreeViewSelectionChanged">
+                <TreeView.ItemTemplate>
+                    <TreeDataTemplate DataType="models:DirectoryNode" ItemsSource="{Binding SubFolders}">
+                        <StackPanel Orientation="Horizontal" Spacing="5">
+                             <PathIcon Data="M10,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V8C22,6.89 21.1,6 20,6H12L10,4Z" Width="16" Height="16" Foreground="Goldenrod"/>
+                             <TextBlock Text="{Binding Name}" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </TreeDataTemplate>
+                </TreeView.ItemTemplate>
+            </TreeView>
+            
+            <GridSplitter Grid.Column="1" ResizeDirection="Columns" Background="LightGray"/>
+
+            <!-- Right: File List (Table) -->
+            <DataGrid Grid.Column="2" ItemsSource="{Binding CurrentItems}" 
+                      SelectedItem="{Binding SelectedItem}"
+                      IsReadOnly="True"
+                      GridLinesVisibility="All"
+                      BorderThickness="1" BorderBrush="Gray"
+                      DoubleTapped="OnDoubleTapped"
+                      CanUserResizeColumns="True">
+                <DataGrid.ContextMenu>
+                    <ContextMenu>
+                        <MenuItem Header="Compress..." Command="{Binding CompressItemCommand}">
+                             <MenuItem.Icon>
+                                <PathIcon Data="M19,3H5A2,2 0 0,0 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5A2,2 0 0,0 19,3M10,15H7V17H10V15M10,11H7V13H10V11M10,7H7V9H10V7M12,7H14V9H12V7M12,11H14V13H12V11M12,15H14V17H12V15M19,19H16V5H19V19Z" />
+                             </MenuItem.Icon>
+                        </MenuItem>
+                        <MenuItem Header="Extract Here..." Command="{Binding ExtractItemCommand}">
+                             <MenuItem.Icon>
+                                 <PathIcon Data="M5,20H19V18H5M19,9H15V3H9V9H5L12,16L19,9Z" />
+                             </MenuItem.Icon>
+                        </MenuItem>
+                        <Separator/>
+                        <MenuItem Header="Cut" Command="{Binding CutItemCommand}"/>
+                        <MenuItem Header="Copy" Command="{Binding CopyItemCommand}"/>
+                        <MenuItem Header="Paste" Command="{Binding PasteItemCommand}"/>
+                        <Separator/>
+                        <MenuItem Header="Rename" Command="{Binding RenameItemCommand}"/>
+                        <MenuItem Header="Delete" Command="{Binding DeleteItemCommand}"/>
+                    </ContextMenu>
+                </DataGrid.ContextMenu>
+                <DataGrid.Columns>
+                    <!-- Type Icon Column -->
+                    <DataGridTemplateColumn Header=" " Width="30">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate DataType="models:FileSystemItem">
+                                <!-- Simple trigger-less icon logic: Folder icon or File icon -->
+                                <Panel>
+                                    <PathIcon Width="16" Height="16" Foreground="Goldenrod"
+                                              Data="M10,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V8C22,6.89 21.1,6 20,6H12L10,4Z"
+                                              IsVisible="{Binding IsDirectory}"/>
+                                    <PathIcon Width="16" Height="16" Foreground="Gray"
+                                              Data="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"
+                                              IsVisible="{Binding !IsDirectory}"/>
+                                </Panel>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                    
+                    <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="2*"/>
+                    <DataGridTextColumn Header="Date Modified" Binding="{Binding DateModified}" Width="1.5*"/>
+                    <DataGridTextColumn Header="Type" Binding="{Binding Type}" Width="*"/>
+                    <DataGridTextColumn Header="Size" Binding="{Binding SizeDisplay}" Width="*"/>
+                </DataGrid.Columns>
+            </DataGrid>
+        </Grid>
+
+        <!-- Status Bar -->
+        <Border Grid.Row="3" BorderBrush="Gray" BorderThickness="0,1,0,0" Padding="5" Background="#F0F0F0">
+            <TextBlock Text="{Binding StatusMessage}" Foreground="Black"/>
+        </Border>
+
+    </Grid>
+
+</Window>
