@@ -1,0 +1,156 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:ImageExplorer.ViewModels"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:models="using:ImageExplorer.Models"
+        mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="800"
+        x:Class="ImageExplorer.Views.MainWindow"
+        x:DataType="vm:MainViewModel"
+        Icon=""
+        Title="ImageExplorer - Code Bender Edition"
+        TransparencyLevelHint="AcrylicBlur"
+        Background="Transparent"
+        ExtendClientAreaToDecorationsHint="True">
+
+    <Design.DataContext>
+        <vm:MainViewModel/>
+    </Design.DataContext>
+
+    <Window.Styles>
+        <Style Selector="TreeViewItem">
+            <Setter Property="IsExpanded" Value="False"/>
+        </Style>
+    </Window.Styles>
+
+    <Grid RowDefinitions="Auto,Auto,*" Margin="0">
+        <!-- Menu Bar -->
+        <Menu Grid.Row="0">
+            <MenuItem Header="_File">
+                <MenuItem Header="_Open..." Command="{Binding OpenFileCommand}"/>
+                <MenuItem Header="_Save As..." Command="{Binding SaveFileCommand}"/>
+                <Separator/>
+                <MenuItem Header="_Exit"/>
+            </MenuItem>
+            <MenuItem Header="_Image">
+                <MenuItem Header="_Resize" Command="{Binding ResizeImageCommand}"/>
+                <MenuItem Header="_Rotate" Command="{Binding RotateImageCommand}"/>
+                <MenuItem Header="_Filters">
+                    <MenuItem Header="Grayscale" Command="{Binding ApplyFilterCommand}" CommandParameter="Grayscale"/>
+                    <MenuItem Header="Sepia" Command="{Binding ApplyFilterCommand}" CommandParameter="Sepia"/>
+                    <MenuItem Header="Blur" Command="{Binding ApplyFilterCommand}" CommandParameter="Blur"/>
+                    <MenuItem Header="Invert" Command="{Binding ApplyFilterCommand}" CommandParameter="Invert"/>
+                </MenuItem>
+            </MenuItem>
+            <MenuItem Header="_View">
+                <MenuItem Header="Zoom In" Command="{Binding ZoomInCommand}"/>
+                <MenuItem Header="Zoom Out" Command="{Binding ZoomOutCommand}"/>
+                <MenuItem Header="Actual Size (1:1)" Command="{Binding ResetZoomCommand}"/>
+                <MenuItem Header="Fit to Screen" Name="MenuFitToScreen" Click="FitToScreen_Click"/>
+            </MenuItem>
+            <MenuItem Header="_Tools">
+                <MenuItem Header="Batch Convert" Command="{Binding BatchConvertCommand}"/>
+            </MenuItem>
+        </Menu>
+
+        <!-- Toolbar -->
+        <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="5" Margin="5">
+            <Button Content="Pointer" Command="{Binding SelectToolCommand}" CommandParameter="Pointer"/>
+            <Button Content="Pen" Command="{Binding SelectToolCommand}" CommandParameter="Pen"/>
+            <Button Content="Line" Command="{Binding SelectToolCommand}" CommandParameter="Line"/>
+            <Button Content="Rect" Command="{Binding SelectToolCommand}" CommandParameter="Rect"/>
+            <Button Content="Ellipse" Command="{Binding SelectToolCommand}" CommandParameter="Ellipse"/>
+            
+            <Separator Width="10"/>
+            <TextBlock Text="Color:" VerticalAlignment="Center"/>
+            <ComboBox ItemsSource="{Binding AvailableColors}" 
+                      SelectedItem="{Binding SelectedColorOption}"
+                      Width="120" VerticalAlignment="Center">
+                <ComboBox.ItemTemplate>
+                    <DataTemplate>
+                        <StackPanel Orientation="Horizontal" Spacing="5">
+                            <Border Width="15" Height="15" Background="{Binding Brush}" BorderBrush="Gray" BorderThickness="1"/>
+                            <TextBlock Text="{Binding Name}" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </DataTemplate>
+                </ComboBox.ItemTemplate>
+            </ComboBox>
+            
+            <Separator Width="10"/>
+            <TextBlock Text="Size:" VerticalAlignment="Center"/>
+            <Slider Minimum="1" Maximum="50" Value="{Binding BrushThickness}" Width="100" VerticalAlignment="Center" ToolTip.Tip="{Binding BrushThickness}"/>
+            <TextBlock Text="{Binding BrushThickness, StringFormat={}{0:0}}" VerticalAlignment="Center" Width="25"/>
+
+            <Separator Width="20"/>
+            <Button Content="+" Command="{Binding ZoomInCommand}" ToolTip.Tip="Zoom In"/>
+            <Button Content="-" Command="{Binding ZoomOutCommand}" ToolTip.Tip="Zoom Out"/>
+            <Button Content="1:1" Command="{Binding ResetZoomCommand}" ToolTip.Tip="Actual Size"/>
+            <Button Content="[ ]" Click="FitToScreen_Click" ToolTip.Tip="Fit to Screen"/>
+            
+            <TextBlock Text="{Binding StatusMessage}" VerticalAlignment="Center" Margin="10,0,0,0"/>
+        </StackPanel>
+
+        <!-- Main Content -->
+        <Grid Grid.Row="2" ColumnDefinitions="250, 4, 300, 4, *">
+            
+            <!-- Directory Tree -->
+            <TreeView Grid.Column="0" ItemsSource="{Binding Directories}" SelectionChanged="TreeView_SelectionChanged">
+                <TreeView.ItemTemplate>
+                    <TreeDataTemplate DataType="models:DirectoryNode" ItemsSource="{Binding Children}">
+                        <TextBlock Text="{Binding Name}"/>
+                    </TreeDataTemplate>
+                </TreeView.ItemTemplate>
+            </TreeView>
+
+            <GridSplitter Grid.Column="1" ResizeDirection="Columns"/>
+
+            <!-- File List -->
+            <DataGrid Grid.Column="2" ItemsSource="{Binding Files}" SelectedItem="{Binding SelectedFile}"
+                      AutoGenerateColumns="False" IsReadOnly="True" GridLinesVisibility="All"
+                      BorderThickness="1" BorderBrush="Gray">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Name" Binding="{Binding FileName}" Width="*"/>
+                    <DataGridTextColumn Header="Size" Binding="{Binding SizeDisplay}" Width="80"/>
+                    <DataGridTextColumn Header="Date" Binding="{Binding DateModified, StringFormat={}{0:g}}" Width="120"/>
+                </DataGrid.Columns>
+            </DataGrid>
+
+            <GridSplitter Grid.Column="3" ResizeDirection="Columns"/>
+
+            <!-- Image View & Canvas -->
+            <Grid Grid.Column="4" Background="#1E1E1E">
+                <ScrollViewer Name="ImageScrollViewer" 
+                              HorizontalScrollBarVisibility="Auto" 
+                              VerticalScrollBarVisibility="Auto"
+                              AllowAutoHide="False">
+                    
+                    <LayoutTransformControl HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <LayoutTransformControl.LayoutTransform>
+                            <ScaleTransform ScaleX="{Binding ZoomScale}" ScaleY="{Binding ZoomScale}"/>
+                        </LayoutTransformControl.LayoutTransform>
+
+                        <Grid Name="ImageContainer">
+                            <!-- Image with Source binding -->
+                            <Image Source="{Binding CurrentImage}" Stretch="None" Name="MainImage"/>
+                            
+                            <!-- Canvas overlay for drawing, needs to match Image size -->
+                            <Canvas Name="AnnotationCanvas" Background="Transparent" 
+                                    Width="{Binding #MainImage.Bounds.Width}"
+                                    Height="{Binding #MainImage.Bounds.Height}"
+                                    PointerPressed="Canvas_PointerPressed"
+                                    PointerMoved="Canvas_PointerMoved"
+                                    PointerReleased="Canvas_PointerReleased"/>
+                        </Grid>
+                    </LayoutTransformControl>
+                </ScrollViewer>
+                
+                <!-- Zoom Indicator Overlay -->
+                <Border Background="#80000000" CornerRadius="5" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="10" Padding="5">
+                    <TextBlock Text="{Binding ZoomScale, StringFormat='{}Zoom: {0:P0}'}" Foreground="White"/>
+                </Border>
+            </Grid>
+
+        </Grid>
+    </Grid>
+
+</Window>

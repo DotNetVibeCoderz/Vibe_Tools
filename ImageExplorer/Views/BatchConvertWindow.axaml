@@ -1,0 +1,86 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="using:ImageExplorer.ViewModels"
+        mc:Ignorable="d" d:DesignWidth="500" d:DesignHeight="450"
+        Width="500" SizeToContent="Height"
+        x:Class="ImageExplorer.Views.BatchConvertWindow"
+        x:DataType="vm:BatchConvertViewModel"
+        Title="Batch Converter - Code Bender"
+        WindowStartupLocation="CenterOwner"
+        CanResize="False">
+    
+    <Grid RowDefinitions="Auto, Auto, Auto, Auto, Auto, Auto" Margin="20">
+        
+        <!-- Source Folder -->
+        <StackPanel Grid.Row="0" Spacing="5" Margin="0,0,0,15">
+            <TextBlock Text="Source Folder:" FontWeight="Bold"/>
+            <Grid ColumnDefinitions="*, 80">
+                <TextBox Text="{Binding SourcePath}" IsReadOnly="True" Margin="0,0,10,0"/>
+                <Button Grid.Column="1" Content="Browse" Command="{Binding BrowseSourceCommand}" HorizontalAlignment="Stretch"/>
+            </Grid>
+        </StackPanel>
+
+        <!-- Destination Folder -->
+        <StackPanel Grid.Row="1" Spacing="5" Margin="0,0,0,15">
+            <TextBlock Text="Destination Folder:" FontWeight="Bold"/>
+            <Grid ColumnDefinitions="*, 80">
+                <TextBox Text="{Binding DestPath}" IsReadOnly="True" Margin="0,0,10,0"/>
+                <Button Grid.Column="1" Content="Browse" Command="{Binding BrowseDestCommand}" HorizontalAlignment="Stretch"/>
+            </Grid>
+        </StackPanel>
+
+        <!-- Action Selection -->
+        <StackPanel Grid.Row="2" Spacing="5" Margin="0,0,0,15">
+            <TextBlock Text="Action:" FontWeight="Bold"/>
+            <ComboBox ItemsSource="{Binding Actions}" SelectedItem="{Binding SelectedAction}" HorizontalAlignment="Stretch"/>
+        </StackPanel>
+
+        <!-- Parameters (Dynamic) -->
+        <StackPanel Grid.Row="3" Margin="0,0,0,15" Background="#252525" IsVisible="{Binding IsParametersVisible}">
+            <Border BorderBrush="Gray" BorderThickness="1" CornerRadius="5" Padding="10">
+                <StackPanel>
+                    <!-- Rotate Params -->
+                    <StackPanel IsVisible="{Binding IsRotateVisible}" Spacing="10">
+                         <TextBlock Text="Rotation (Degrees):"/>
+                         <NumericUpDown Value="{Binding RotationDegrees}" Minimum="-360" Maximum="360" Increment="90"/>
+                    </StackPanel>
+
+                    <!-- Convert Params -->
+                    <StackPanel IsVisible="{Binding IsConvertVisible}" Spacing="10">
+                        <TextBlock Text="Target Format:"/>
+                        <ComboBox ItemsSource="{Binding TargetFormats}" SelectedItem="{Binding TargetExtension}" HorizontalAlignment="Stretch"/>
+                    </StackPanel>
+
+                    <!-- Resize Params -->
+                    <StackPanel IsVisible="{Binding IsResizeVisible}" Spacing="10">
+                        <Grid ColumnDefinitions="*, 10, *">
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="Width:"/>
+                                <NumericUpDown Value="{Binding ResizeWidth}" Minimum="1" Maximum="10000"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Text="Height:"/>
+                                <NumericUpDown Value="{Binding ResizeHeight}" Minimum="1" Maximum="10000"/>
+                            </StackPanel>
+                        </Grid>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+
+        <!-- Progress -->
+        <StackPanel Grid.Row="4" Spacing="5" Margin="0,0,0,15">
+             <ProgressBar Minimum="0" Maximum="{Binding TotalFiles}" Value="{Binding ProcessedFiles}" Height="20" ShowProgressText="True"/>
+             <TextBlock Text="{Binding StatusMessage}" HorizontalAlignment="Center" FontSize="12"/>
+        </StackPanel>
+
+        <!-- Buttons -->
+        <StackPanel Grid.Row="5" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10">
+            <Button Content="Close" Command="{Binding CloseCommand}" Width="80"/>
+            <Button Content="Start Processing" Command="{Binding StartCommand}" Width="150" Classes="accent"/>
+        </StackPanel>
+        
+    </Grid>
+</Window>
