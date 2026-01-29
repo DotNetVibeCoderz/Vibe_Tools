@@ -1,0 +1,199 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:controls="clr-namespace:DrawingApp.Controls"
+        x:Class="DrawingApp.MainWindow"
+        Title="Drawing App - MS Paint Clone" 
+        Width="1200" 
+        Height="800"
+        Background="#F5F5F5">
+    
+    <Window.Styles>
+        <Style Selector="Button.tool">
+            <Setter Property="Width" Value="50"/>
+            <Setter Property="Height" Value="50"/>
+            <Setter Property="Margin" Value="2"/>
+            <Setter Property="Background" Value="#FFFFFF"/>
+            <Setter Property="BorderBrush" Value="#CCCCCC"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="4"/>
+        </Style>
+        <Style Selector="Button.tool:pointerover">
+            <Setter Property="Background" Value="#E3F2FD"/>
+            <Setter Property="BorderBrush" Value="#2196F3"/>
+        </Style>
+        <Style Selector="Button.tool:pressed">
+            <Setter Property="Background" Value="#BBDEFB"/>
+        </Style>
+        <Style Selector="Button.color">
+            <Setter Property="Width" Value="30"/>
+            <Setter Property="Height" Value="30"/>
+            <Setter Property="Margin" Value="2"/>
+            <Setter Property="BorderThickness" Value="2"/>
+            <Setter Property="BorderBrush" Value="#333333"/>
+            <Setter Property="CornerRadius" Value="3"/>
+        </Style>
+        <Style Selector="Button.color:pointerover">
+            <Setter Property="BorderBrush" Value="#2196F3"/>
+            <Setter Property="BorderThickness" Value="3"/>
+        </Style>
+    </Window.Styles>
+
+    <DockPanel >
+        <!-- Menu Bar -->
+        <Menu DockPanel.Dock="Top" BorderBrush="#DDDDDD" BorderThickness="0,0,0,1">
+            <MenuItem Foreground="Black" Header="File" >
+                <MenuItem Header="New" Name="MenuNew" />
+                <MenuItem Header="Open..." Name="MenuOpen" />
+                <MenuItem Header="Save As..." Name="MenuSave" />
+                <Separator/>
+                <MenuItem Header="Exit" Name="MenuExit" />
+            </MenuItem>
+            <MenuItem Foreground="Black" Header="Edit" >
+                <MenuItem Header="Undo" Name="MenuUndo" />
+                <MenuItem Header="Clear All" Name="MenuClear" />
+            </MenuItem>
+            <MenuItem Foreground="Black" Header="View" >
+                <MenuItem Header="Show Grid" Name="MenuGrid" />
+            </MenuItem>
+            <MenuItem Foreground="Black" Header="Help" >
+                <MenuItem Header="About" Name="MenuAbout" />
+            </MenuItem>
+        </Menu>
+
+        <!-- Toolbar -->
+        <Border DockPanel.Dock="Top" Height="60" 
+                BorderBrush="#DDDDDD" BorderThickness="0,0,0,1" Padding="5">
+            <StackPanel Orientation="Horizontal">
+                <Button Classes="tool" Foreground="#000000" Content="📄" Name="BtnNew" ToolTip.Tip="New File"/>
+                <Button Classes="tool" Foreground="#000000" Content="📂" Name="BtnOpen" ToolTip.Tip="Open Image"/>
+                <Button Classes="tool" Foreground="#000000" Content="💾" Name="BtnSave" ToolTip.Tip="Save As..."/>
+                <Separator Width="10" Foreground="#000000" Background="Transparent"/>
+                <Button Classes="tool" Foreground="#000000" Content="↶" Name="BtnUndo" ToolTip.Tip="Undo" FontSize="20"/>
+                <Button Classes="tool" Foreground="#000000" Content="🗑️" Name="BtnClear" ToolTip.Tip="Clear All"/>
+                <Separator Width="10" Foreground="#000000" Background="Transparent"/>
+                <TextBlock VerticalAlignment="Center" Margin="10,0" Name="ZoomLabel" 
+                           FontWeight="Bold" Foreground="#2196F3" FontSize="14">100%</TextBlock>
+            </StackPanel>
+        </Border>
+
+        <!-- Left Tool Panel -->
+        <Border DockPanel.Dock="Left" Background="#FFFFFF" Width="90" Padding="8"
+                BorderBrush="#DDDDDD" BorderThickness="0,0,1,0">
+            <ScrollViewer>
+                <StackPanel>
+                    <TextBlock Text="🎨 Tools" FontWeight="Bold" Margin="0,0,0,10" 
+                               Foreground="#2196F3" FontSize="14"/>
+                    
+                    <Button Classes="tool" Foreground="#000000" Content="✏️" Name="BtnPencil" ToolTip.Tip="Pencil" FontSize="20"/>
+                    <Button Classes="tool" Foreground="#000000" Content="🖌️" Name="BtnBrush" ToolTip.Tip="Brush" FontSize="20"/>
+                    <Button Classes="tool" Foreground="#000000" Content="📏" Name="BtnLine" ToolTip.Tip="Line" FontSize="20"/>
+                    <Button Classes="tool" Foreground="#000000" Content="▭" Name="BtnRectangle" ToolTip.Tip="Rectangle" FontSize="20"/>
+                    <Button Classes="tool" Foreground="#000000" Content="⭕" Name="BtnCircle" ToolTip.Tip="Circle" FontSize="20"/>
+                    <Button Classes="tool" Foreground="#000000" Content="➤" Name="BtnArrow" ToolTip.Tip="Arrow" FontSize="20"/>
+                    <Button Classes="tool" Foreground="#000000" Content="🧽" Name="BtnEraser" ToolTip.Tip="Eraser" FontSize="20"/>
+                    <Button Classes="tool" Foreground="#000000" Content="🔤" Name="BtnText" ToolTip.Tip="Text" FontSize="20"/>
+                    
+                    <Separator Height="15" Background="Transparent"/>
+                    
+                    <TextBlock  Text="📐 Size" FontWeight="Bold" Margin="0,5,0,8" 
+                               Foreground="#2196F3" FontSize="14"/>
+                    <Slider Name="StrokeSlider" Minimum="1" Maximum="20" Value="2"
+                            Background="#E3F2FD" Foreground="#2196F3"/>
+                    <TextBlock Name="StrokeLabel" Text="2 px" HorizontalAlignment="Center"
+                               FontWeight="Bold" Foreground="#333333" Margin="0,5,0,0"/>
+
+                    <Separator Height="15" Background="Transparent"/>
+
+                    <TextBlock Text="🔤 Text" FontWeight="Bold" Margin="0,5,0,8" 
+                               Foreground="#2196F3" FontSize="14"/>
+                    <TextBox Name="TxtTextInput" Watermark="Tulis..." Margin="0,0,0,6"/>
+                    <ComboBox Name="FontFamilyCombo" Margin="0,0,0,6"/>
+                    <ComboBox Name="FontSizeCombo"/>
+                </StackPanel>
+            </ScrollViewer>
+        </Border>
+
+        <!-- Right Color Panel -->
+        <Border DockPanel.Dock="Right" Background="#FFFFFF" Width="130" Padding="8"
+                BorderBrush="#DDDDDD" BorderThickness="1,0,0,0">
+            <ScrollViewer>
+                <StackPanel>
+                    <TextBlock Text="🎨 Colors" FontWeight="Bold" Margin="0,0,0,10" 
+                               Foreground="#2196F3" FontSize="14"/>
+                    
+                    <!-- Current Color Display -->
+                    <Border Height="60" Background="#F5F5F5" BorderBrush="#333333" 
+                            BorderThickness="2" Margin="0,0,0,15" CornerRadius="6">
+                        <Border Name="CurrentColorDisplay" Background="Black" 
+                                Margin="5" CornerRadius="3"/>
+                    </Border>
+                    
+                    <TextBlock Text="Palette" FontWeight="Bold" Margin="0,5,0,8" 
+                               Foreground="#2196F3" FontSize="13"/>
+                    
+                    <!-- Color Palette Grid -->
+                    <WrapPanel Name="ColorPalette">
+                        <Button Classes="color" Background="Black" Name="ColorBlack"/>
+                        <Button Classes="color" Background="White" Name="ColorWhite"/>
+                        <Button Classes="color" Background="Red" Name="ColorRed"/>
+                        <Button Classes="color" Background="Green" Name="ColorGreen"/>
+                        <Button Classes="color" Background="Blue" Name="ColorBlue"/>
+                        <Button Classes="color" Background="Yellow" Name="ColorYellow"/>
+                        <Button Classes="color" Background="Orange" Name="ColorOrange"/>
+                        <Button Classes="color" Background="Purple" Name="ColorPurple"/>
+                        <Button Classes="color" Background="Pink" Name="ColorPink"/>
+                        <Button Classes="color" Background="Brown" Name="ColorBrown"/>
+                        <Button Classes="color" Background="Gray" Name="ColorGray"/>
+                        <Button Classes="color" Background="Cyan" Name="ColorCyan"/>
+                    </WrapPanel>
+                    
+                    <Separator Height="15" Background="Transparent"/>
+                    
+                    <TextBlock Text="🖌️ Brush Style" FontWeight="Bold" Margin="0,5,0,8" 
+                               Foreground="#2196F3" FontSize="13"/>
+                    <RadioButton Content="Normal" GroupName="BrushStyle" IsChecked="True" 
+                                 Name="BrushNormal" Foreground="#333333" Margin="0,3"/>
+                    <RadioButton Content="Oil" GroupName="BrushStyle" 
+                                 Name="BrushOil" Foreground="#333333" Margin="0,3"/>
+                    <RadioButton Content="Watercolor" GroupName="BrushStyle" 
+                                 Name="BrushWatercolor" Foreground="#333333" Margin="0,3"/>
+                    <RadioButton Content="Calligraphy" GroupName="BrushStyle" 
+                                 Name="BrushCalligraphy" Foreground="#333333" Margin="0,3"/>
+                </StackPanel>
+            </ScrollViewer>
+        </Border>
+
+        <!-- Status Bar -->
+        <Border DockPanel.Dock="Bottom" Background="#FFFFFF" Height="32" 
+                BorderBrush="#DDDDDD" BorderThickness="0,1,0,0">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                
+                <TextBlock Name="StatusLabel" Grid.Column="0" 
+                           Text="Ready to draw! 🎨" VerticalAlignment="Center" 
+                           Margin="15,0" Foreground="#666666" FontSize="13"/>
+                <TextBlock Name="ToolLabel" Grid.Column="1" 
+                           Text="Tool: Pencil" VerticalAlignment="Center" 
+                           Margin="15,0" Foreground="#2196F3" FontWeight="Bold" FontSize="13"/>
+            </Grid>
+        </Border>
+
+        <!-- Main Canvas Area -->
+        <Border Background="#E8E8E8" BorderBrush="#CCCCCC" BorderThickness="1" 
+                Margin="5" CornerRadius="4">
+            <ScrollViewer HorizontalScrollBarVisibility="Auto" 
+                          VerticalScrollBarVisibility="Auto"
+                          Background="#E8E8E8">
+                <Border Background="White" BorderBrush="#999999" 
+                        BorderThickness="2" Margin="10">
+                    <controls:DrawingCanvas Name="DrawingCanvas" 
+                                           Width="1024" 
+                                           Height="768"/>
+                </Border>
+            </ScrollViewer>
+        </Border>
+    </DockPanel>
+</Window>
