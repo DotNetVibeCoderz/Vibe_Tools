@@ -1,0 +1,60 @@
+[
+  {
+    "IPAddress": "192.168.18.1",
+    "Hostname": "N/A",
+    "MACAddress": "Requires Admin/Root",
+    "Vendor": null,
+    "Status": "Online",
+    "OSDescription": "Linux/Unix/Mac",
+    "RoundTripTime": 3,
+    "OpenPorts": [
+      53,
+      80
+    ]
+  },
+  {
+    "IPAddress": "192.168.18.12",
+    "Hostname": "N/A",
+    "MACAddress": "Requires Admin/Root",
+    "Vendor": null,
+    "Status": "Online",
+    "OSDescription": "Linux/Unix/Mac",
+    "RoundTripTime": 116,
+    "OpenPorts": []
+  },
+  {
+    "IPAddress": "192.168.18.83",
+    "Hostname": "N/A",
+    "MACAddress": "Requires Admin/Root",
+    "Vendor": null,
+    "Status": "Online",
+    "OSDescription": "Linux/Unix/Mac",
+    "RoundTripTime": 154,
+    "OpenPorts": []
+  },
+  {
+    "IPAddress": "192.168.18.117",
+    "Hostname": "N/A",
+    "MACAddress": "Requires Admin/Root",
+    "Vendor": null,
+    "Status": "Online",
+    "OSDescription": "Linux/Unix/Mac",
+    "RoundTripTime": 279,
+    "OpenPorts": []
+  },
+  {
+    "IPAddress": "192.168.18.207",
+    "Hostname": "PC-CODER",
+    "MACAddress": "Requires Admin/Root",
+    "Vendor": null,
+    "Status": "Online",
+    "OSDescription": "Windows",
+    "RoundTripTime": 0,
+    "OpenPorts": [
+      135,
+      139,
+      445,
+      3306
+    ]
+  }
+]
