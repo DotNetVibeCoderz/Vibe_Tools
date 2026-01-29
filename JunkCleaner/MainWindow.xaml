@@ -1,0 +1,116 @@
+<Window x:Class="JunkCleaner.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+        xmlns:local="clr-namespace:JunkCleaner"
+        mc:Ignorable="d"
+        Title="Jacky's Junk Cleaner" Height="600" Width="900"
+        TextElement.Foreground="{DynamicResource MaterialDesignBody}"
+        TextElement.FontWeight="Regular"
+        TextElement.FontSize="13"
+        TextOptions.TextFormattingMode="Ideal"
+        TextOptions.TextRenderingMode="Auto"
+        Background="{DynamicResource MaterialDesignPaper}"
+        FontFamily="{DynamicResource MaterialDesignFont}">
+    
+    <Window.Resources>
+        <local:InvertBooleanConverter x:Key="InvertBooleanConverter"/>
+    </Window.Resources>
+
+    <Window.DataContext>
+        <local:MainViewModel/>
+    </Window.DataContext>
+    
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="280"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <!-- Sidebar -->
+        <Border Grid.Column="0" Background="{DynamicResource MaterialDesignCardBackground}" Effect="{DynamicResource MaterialDesignShadowDepth2}">
+            <StackPanel Margin="10">
+                <TextBlock Text="Junk Cleaner" Style="{StaticResource MaterialDesignHeadline4TextBlock}" Margin="10,20,10,30" Foreground="{DynamicResource PrimaryHueMidBrush}"/>
+                
+                <Button Style="{StaticResource MaterialDesignFlatButton}" HorizontalAlignment="Left" Width="200" Margin="0,5">
+                    <StackPanel Orientation="Horizontal">
+                        <materialDesign:PackIcon Kind="Broom" Margin="0,0,10,0"/>
+                        <TextBlock Text="Quick Clean"/>
+                    </StackPanel>
+                </Button>
+                 <Button Style="{StaticResource MaterialDesignFlatButton}" HorizontalAlignment="Left" Width="200" Margin="0,5">
+                    <StackPanel Orientation="Horizontal">
+                        <materialDesign:PackIcon Kind="FileFind" Margin="0,0,10,0"/>
+                        <TextBlock Text="Large Files (Logs)"/>
+                    </StackPanel>
+                </Button>
+                <Button Style="{StaticResource MaterialDesignFlatButton}" HorizontalAlignment="Left" Width="200" Margin="0,5">
+                    <StackPanel Orientation="Horizontal">
+                        <materialDesign:PackIcon Kind="DeleteRestore" Margin="0,0,10,0"/>
+                        <TextBlock Text="App Uninstaller"/>
+                    </StackPanel>
+                </Button>
+                 <Button Style="{StaticResource MaterialDesignFlatButton}" HorizontalAlignment="Left" Width="200" Margin="0,5">
+                    <StackPanel Orientation="Horizontal">
+                        <materialDesign:PackIcon Kind="Cube" Margin="0,0,10,0"/>
+                        <TextBlock Text="Registry (Safe)"/>
+                    </StackPanel>
+                </Button>
+            </StackPanel>
+        </Border>
+
+        <!-- Main Content -->
+        <Grid Grid.Column="1" Margin="20">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <!-- Status Card -->
+            <materialDesign:Card Grid.Row="0" Margin="0,0,0,20" Padding="30" UniformCornerRadius="10">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel>
+                        <TextBlock Text="Total Junk Found" Style="{StaticResource MaterialDesignHeadline6TextBlock}" Opacity="0.7"/>
+                        <TextBlock Text="{Binding JunkSizeText}" Style="{StaticResource MaterialDesignHeadline3TextBlock}" Foreground="{DynamicResource SecondaryHueMidBrush}"/>
+                        <TextBlock Text="{Binding StatusMessage}" Margin="0,10,0,0" FontStyle="Italic"/>
+                    </StackPanel>
+                    
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                        <Button Command="{Binding ScanCommand}" Style="{StaticResource MaterialDesignOutlinedButton}" Margin="0,0,10,0" Content="SCAN NOW" IsEnabled="{Binding IsBusy, Converter={StaticResource InvertBooleanConverter}}"/>
+                        <Button Command="{Binding CleanCommand}" Style="{StaticResource MaterialDesignRaisedButton}" Content="CLEAN ALL" IsEnabled="{Binding IsBusy, Converter={StaticResource InvertBooleanConverter}}"/>
+                    </StackPanel>
+                </Grid>
+            </materialDesign:Card>
+
+            <ProgressBar Grid.Row="1" Value="{Binding ProgressValue}" Height="10" Margin="0,0,0,20" 
+                         IsIndeterminate="{Binding IsBusy}" 
+                         Style="{StaticResource MaterialDesignLinearProgressBar}"/>
+
+            <!-- Logs -->
+            <materialDesign:Card Grid.Row="2" VerticalAlignment="Stretch" Padding="10">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    <TextBlock Text="Activity Log" Style="{StaticResource MaterialDesignSubtitle1TextBlock}" Margin="10"/>
+                    <ListBox Grid.Row="1" ItemsSource="{Binding Logs}" Margin="5" FontSize="11" FontFamily="Consolas">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding}" TextWrapping="Wrap"/>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </Grid>
+            </materialDesign:Card>
+
+        </Grid>
+    </Grid>
+</Window>
