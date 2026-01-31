@@ -1,0 +1,15 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="ShootIt.Views.RegionSelector"
+        Title="Select Region"
+        TransparencyLevelHint="Transparent"
+        Background="#55000000"
+        SystemDecorations="None"
+        WindowState="FullScreen"
+        Topmost="True">
+    
+    <Canvas Name="SelectionCanvas">
+        <Rectangle Name="SelectionRect" Stroke="Red" StrokeThickness="2" Fill="#55FFFFFF" IsVisible="False"/>
+        <TextBlock Text="Drag mouse to select region. ESC to cancel." Foreground="White" Margin="10" Canvas.Top="0" Canvas.Left="0"/>
+    </Canvas>
+</Window>

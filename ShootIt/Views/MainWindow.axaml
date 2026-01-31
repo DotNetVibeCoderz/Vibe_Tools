@@ -1,0 +1,25 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="300"
+        Width="400" Height="300"
+        x:Class="ShootIt.Views.MainWindow"
+        Title="ShootIt - Code Bender Edition"
+        WindowStartupLocation="CenterScreen"
+        CanResize="False">
+
+    <StackPanel Margin="20" Spacing="15">
+        <TextBlock Text="ShootIt Recorder" FontSize="24" FontWeight="Bold" HorizontalAlignment="Center"/>
+        <TextBlock Text="By Jacky the Code Bender" FontSize="12" Foreground="Gray" HorizontalAlignment="Center"/>
+
+        <Button Name="BtnFullScreen" Content="📸 Capture Full Screen" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"/>
+        <Button Name="BtnRegion" Content="✂️ Capture Region" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"/>
+        
+        <Separator/>
+        
+        <Button Name="BtnRecord" Content="🎥 Start Recording (Demo)" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"/>
+        
+        <TextBlock Name="StatusText" Text="Ready" HorizontalAlignment="Center" Margin="0,10,0,0" Foreground="Cyan"/>
+    </StackPanel>
+</Window>
