@@ -1,0 +1,261 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        x:Class="StockInfo.MainWindow"
+        Width="1200" Height="800"
+        Title="StockInfo - Insight Saham">
+
+  <Window.Styles>
+    <Style Selector="TextBlock.title">
+      <Setter Property="FontSize" Value="20" />
+      <Setter Property="FontWeight" Value="Bold" />
+    </Style>
+    <Style Selector="Border.card">
+      <Setter Property="CornerRadius" Value="12" />
+      <Setter Property="Padding" Value="16" />
+      <Setter Property="Background" Value="#FFFFFF" />
+      <Setter Property="BoxShadow" Value="0 4 12 0 #33000000" />
+    </Style>
+  </Window.Styles>
+
+  <Grid RowDefinitions="Auto,*" Background="#F4F6FB">
+    <!-- Top Bar -->
+    <Border Background="#1E3A8A" Padding="20">
+      <DockPanel>
+        <StackPanel DockPanel.Dock="Left">
+          <TextBlock Text="StockInfo" Foreground="White" FontSize="26" FontWeight="Bold" />
+          <TextBlock Text="Dasbor saham lintas platform" Foreground="#E0E7FF" />
+        </StackPanel>
+
+        <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" Spacing="12" VerticalAlignment="Center">
+          <TextBox Width="260" Watermark="Cari kode / nama saham" Text="{Binding StockQuery}" />
+          <TextBox Width="140" Watermark="Input kode" Text="{Binding InputCode}" />
+          <Button Content="Load" Click="OnLoadStockClick" />
+        </StackPanel>
+      </DockPanel>
+    </Border>
+
+    <!-- Content -->
+    <Grid Row="1" ColumnDefinitions="320,*" Margin="20">
+      <!-- Sidebar -->
+      <Border Classes="card" Padding="0" Margin="0 0 20 0">
+        <StackPanel>
+          <TextBlock Text="Daftar Saham" Classes="title" Margin="16 16 16 8" />
+          <ListBox ItemsSource="{Binding FilteredStocks}"
+                   SelectedItem="{Binding SelectedStock}"
+                   Height="600">
+            <ListBox.ItemTemplate>
+              <DataTemplate>
+                <Border Margin="8" Padding="12" Background="#F8FAFC" CornerRadius="10">
+                  <StackPanel>
+                    <TextBlock Text="{Binding Code}" FontWeight="Bold" FontSize="16" />
+                    <TextBlock Text="{Binding Name}" FontSize="12" />
+                    <TextBlock Text="{Binding Sector}" FontSize="11" Foreground="#64748B" />
+                  </StackPanel>
+                </Border>
+              </DataTemplate>
+            </ListBox.ItemTemplate>
+          </ListBox>
+        </StackPanel>
+      </Border>
+
+      <!-- Main Detail -->
+      <StackPanel Grid.Column="1" Spacing="16">
+        <Border Classes="card">
+          <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto">
+            <StackPanel>
+              <TextBlock Text="{Binding SelectedStock.Name}" FontSize="22" FontWeight="Bold" />
+              <TextBlock Text="{Binding CompanyProfile}" TextWrapping="Wrap" Foreground="#475569" />
+            </StackPanel>
+            <StackPanel Grid.Column="1" HorizontalAlignment="Right">
+              <TextBlock Text="{Binding CurrentPrice}" FontSize="22" FontWeight="Bold" />
+              <TextBlock Text="{Binding PriceChange}" Foreground="#16A34A" />
+            </StackPanel>
+          </Grid>
+        </Border>
+
+        <TabControl>
+          <TabItem Header="Fundamental">
+            <ScrollViewer>
+              <StackPanel Spacing="16" Margin="0 12 0 0">
+                <Border Classes="card">
+                  <StackPanel>
+                    <TextBlock Text="Laporan Keuangan" Classes="title" />
+                    <ItemsControl ItemsSource="{Binding FinancialReports}">
+                      <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                          <Grid ColumnDefinitions="Auto,*,*,*" Margin="0 8 0 0">
+                            <TextBlock Text="{Binding Period}" FontWeight="Bold" />
+                            <TextBlock Grid.Column="1" Text="Revenue: {Binding Revenue}" />
+                            <TextBlock Grid.Column="2" Text="Net Profit: {Binding NetProfit}" />
+                            <TextBlock Grid.Column="3" Text="EPS: {Binding EPS}" />
+                          </Grid>
+                        </DataTemplate>
+                      </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                  </StackPanel>
+                </Border>
+
+                <Border Classes="card">
+                  <StackPanel>
+                    <TextBlock Text="Rasio Keuangan" Classes="title" />
+                    <ItemsControl ItemsSource="{Binding Ratios}">
+                      <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                          <Grid ColumnDefinitions="Auto,Auto,*" Margin="0 6 0 0">
+                            <TextBlock Text="{Binding Name}" FontWeight="Bold" />
+                            <TextBlock Grid.Column="1" Text="{Binding Value}" Margin="12 0" />
+                            <TextBlock Grid.Column="2" Text="{Binding Note}" Foreground="#475569" />
+                          </Grid>
+                        </DataTemplate>
+                      </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                  </StackPanel>
+                </Border>
+
+                <Border Classes="card">
+                  <StackPanel>
+                    <TextBlock Text="Dividen" Classes="title" />
+                    <ItemsControl ItemsSource="{Binding Dividends}">
+                      <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                          <Grid ColumnDefinitions="Auto,Auto,*" Margin="0 6 0 0">
+                            <TextBlock Text="{Binding Year}" FontWeight="Bold" />
+                            <TextBlock Grid.Column="1" Text="{Binding Amount}" Margin="12 0" />
+                            <TextBlock Grid.Column="2" Text="Yield: {Binding Yield}" />
+                          </Grid>
+                        </DataTemplate>
+                      </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                  </StackPanel>
+                </Border>
+              </StackPanel>
+            </ScrollViewer>
+          </TabItem>
+
+          <TabItem Header="Teknikal">
+            <ScrollViewer>
+              <StackPanel Spacing="16" Margin="0 12 0 0">
+                <Border Classes="card">
+                  <StackPanel>
+                    <TextBlock Text="Charting" Classes="title" />
+                    <Border Background="#EEF2FF" CornerRadius="12" Height="180" Margin="0 12 0 0">
+                      <TextBlock Text="Chart placeholder (candlestick / line)" VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="#475569" />
+                    </Border>
+                  </StackPanel>
+                </Border>
+
+                <Border Classes="card">
+                  <StackPanel>
+                    <TextBlock Text="Indikator" Classes="title" />
+                    <ItemsControl ItemsSource="{Binding Indicators}">
+                      <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                          <TextBlock Text="• {Binding}" Margin="0 4 0 0" />
+                        </DataTemplate>
+                      </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                  </StackPanel>
+                </Border>
+
+                <Border Classes="card">
+                  <StackPanel>
+                    <TextBlock Text="Analisis Tren" Classes="title" />
+                    <ItemsControl ItemsSource="{Binding Trends}">
+                      <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                          <TextBlock Text="• {Binding}" Margin="0 4 0 0" />
+                        </DataTemplate>
+                      </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                    <ItemsControl ItemsSource="{Binding Supports}" Margin="0 8 0 0">
+                      <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                          <TextBlock Text="• {Binding}" Margin="0 4 0 0" />
+                        </DataTemplate>
+                      </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                  </StackPanel>
+                </Border>
+              </StackPanel>
+            </ScrollViewer>
+          </TabItem>
+
+          <TabItem Header="Tambahan">
+            <ScrollViewer>
+              <StackPanel Spacing="16" Margin="0 12 0 0">
+                <Border Classes="card">
+                  <StackPanel>
+                    <TextBlock Text="Alert" Classes="title" />
+                    <ItemsControl ItemsSource="{Binding Alerts}">
+                      <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                          <Grid ColumnDefinitions="*,Auto" Margin="0 6 0 0">
+                            <TextBlock Text="{Binding Condition}" />
+                            <TextBlock Grid.Column="1" Text="{Binding Status}" Foreground="#16A34A" />
+                          </Grid>
+                        </DataTemplate>
+                      </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                  </StackPanel>
+                </Border>
+
+                <Border Classes="card">
+                  <StackPanel>
+                    <TextBlock Text="Berita Real-time" Classes="title" />
+                    <ItemsControl ItemsSource="{Binding News}">
+                      <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                          <StackPanel Margin="0 6 0 0">
+                            <TextBlock Text="{Binding Title}" FontWeight="Bold" />
+                            <TextBlock Text="{Binding Source} • {Binding Time}" Foreground="#64748B" FontSize="11" />
+                          </StackPanel>
+                        </DataTemplate>
+                      </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                  </StackPanel>
+                </Border>
+
+                <Border Classes="card">
+                  <StackPanel>
+                    <TextBlock Text="Kalender" Classes="title" />
+                    <ItemsControl ItemsSource="{Binding Calendar}">
+                      <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                          <Grid ColumnDefinitions="Auto,*,Auto" Margin="0 6 0 0">
+                            <TextBlock Text="{Binding Date}" FontWeight="Bold" />
+                            <TextBlock Grid.Column="1" Text="{Binding Event}" Margin="12 0" />
+                            <TextBlock Grid.Column="2" Text="{Binding Impact}" Foreground="#F97316" />
+                          </Grid>
+                        </DataTemplate>
+                      </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                  </StackPanel>
+                </Border>
+
+                <Border Classes="card">
+                  <StackPanel>
+                    <TextBlock Text="Simulasi" Classes="title" />
+                    <ItemsControl ItemsSource="{Binding Simulations}">
+                      <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                          <Grid ColumnDefinitions="Auto,*,Auto" Margin="0 6 0 0">
+                            <TextBlock Text="{Binding Scenario}" FontWeight="Bold" />
+                            <TextBlock Grid.Column="1" Text="{Binding Outcome}" Margin="12 0" />
+                            <TextBlock Grid.Column="2" Text="{Binding Probability}" Foreground="#2563EB" />
+                          </Grid>
+                        </DataTemplate>
+                      </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                  </StackPanel>
+                </Border>
+              </StackPanel>
+            </ScrollViewer>
+          </TabItem>
+        </TabControl>
+      </StackPanel>
+    </Grid>
+  </Grid>
+</Window>
