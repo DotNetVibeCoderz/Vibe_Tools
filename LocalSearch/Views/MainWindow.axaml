@@ -1,0 +1,58 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:LocalSearch.ViewModels"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
+        x:Class="LocalSearch.Views.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Icon=""
+        Title="LocalSearch - Jacky's Engine">
+
+    <Design.DataContext>
+        <vm:MainWindowViewModel/>
+    </Design.DataContext>
+
+    <Grid RowDefinitions="Auto, Auto, *, Auto" Margin="20">
+        
+        <!-- Header / Indexing Section -->
+        <Border Grid.Row="0" Background="#252526" CornerRadius="8" Padding="15" Margin="0,0,0,15">
+            <StackPanel Spacing="10">
+                <TextBlock Text="Directory Indexer" FontWeight="Bold" FontSize="16" Foreground="White"/>
+                <Grid ColumnDefinitions="*, Auto, Auto">
+                    <TextBox Grid.Column="0" Text="{Binding RootPath}" Watermark="Select Folder Path..." Margin="0,0,10,0"/>
+                    <Button Grid.Column="1" Content="..." Click="OnBrowseClick" Margin="0,0,10,0" ToolTip.Tip="Browse Folder"/>
+                    <Button Grid.Column="2" Content="Index Now" Command="{Binding IndexCommand}" IsEnabled="{Binding !IsBusy}"/>
+                </Grid>
+            </StackPanel>
+        </Border>
+
+        <!-- Search Section -->
+        <Border Grid.Row="1" Background="#2D2D30" CornerRadius="8" Padding="15" Margin="0,0,0,15">
+            <StackPanel Spacing="10">
+                <TextBlock Text="Search" FontWeight="Bold" FontSize="16" Foreground="White"/>
+                <Grid ColumnDefinitions="*, Auto, Auto">
+                    <TextBox Grid.Column="0" Text="{Binding SearchQuery}" Watermark="Enter keywords..." Margin="0,0,10,0"/>
+                    <CheckBox Grid.Column="1" IsChecked="{Binding IsSemantic}" Content="Semantic (Fuzzy)" Margin="0,0,15,0"/>
+                    <Button Grid.Column="2" Content="Search" Command="{Binding SearchCommand}" Classes="accent"/>
+                </Grid>
+            </StackPanel>
+        </Border>
+
+        <!-- Results Grid -->
+        <DataGrid x:Name="ResultsGrid" Grid.Row="2" ItemsSource="{Binding SearchResults}" AutoGenerateColumns="False" IsReadOnly="True"
+                  GridLinesVisibility="All" BorderThickness="1" BorderBrush="#3F3F46" Background="#1E1E1E"
+                  DoubleTapped="OnResultDoubleTapped">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="File Name" Binding="{Binding FileName}" Width="200"/>
+                <DataGridTextColumn Header="Type" Binding="{Binding FileType}" Width="80"/>
+                <DataGridTextColumn Header="Relevance" Binding="{Binding Score}" Width="100"/>
+                <DataGridTextColumn Header="Snippet" Binding="{Binding Snippet}" Width="*"/>
+            </DataGrid.Columns>
+        </DataGrid>
+
+        <!-- Footer -->
+        <TextBlock Grid.Row="3" Text="{Binding StatusMessage}" Margin="0,10,0,0" FontStyle="Italic" Foreground="Gray"/>
+        
+    </Grid>
+</Window>
