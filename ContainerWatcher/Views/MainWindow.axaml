@@ -1,0 +1,101 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:ContainerWatcher.ViewModels"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="550"
+        x:Class="ContainerWatcher.Views.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Icon=""
+        Title="ContainerWatcher - Docker Manager"
+        Background="#1E1E1E"
+        ExtendClientAreaToDecorationsHint="True">
+
+    <Design.DataContext>
+        <vm:MainWindowViewModel/>
+    </Design.DataContext>
+
+    <Panel Margin="0">
+        <!-- Background Gradient (Subtle) -->
+        <Border>
+            <Border.Background>
+                <LinearGradientBrush StartPoint="0%,0%" EndPoint="0%,100%">
+                    <GradientStop Color="#252526" Offset="0"/>
+                    <GradientStop Color="#1E1E1E" Offset="1"/>
+                </LinearGradientBrush>
+            </Border.Background>
+        </Border>
+
+        <Grid RowDefinitions="Auto, *, Auto" Margin="20">
+            <!-- Header -->
+            <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,15,0,20" Spacing="10">
+                <TextBlock Text="🐳" FontSize="24" VerticalAlignment="Center"/>
+                <TextBlock Text="Container Watcher" FontSize="20" FontWeight="Bold" VerticalAlignment="Center" Foreground="White"/>
+                <TextBlock Text="{Binding StatusMessage}" FontSize="12" VerticalAlignment="Center" Foreground="#AAAAAA" Margin="20,0,0,0"/>
+            </StackPanel>
+
+            <!-- Main Content -->
+            <Grid Grid.Row="1" ColumnDefinitions="2*, 5, 1*">
+                
+                <!-- Container List -->
+                <Border Grid.Column="0" Background="#2D2D30" CornerRadius="8" Padding="10" BoxShadow="0 4 8 0 #000000">
+                    <Grid RowDefinitions="Auto, *">
+                        <StackPanel Orientation="Horizontal" Spacing="10" Margin="0,0,0,10">
+                            <Button Command="{Binding LoadContainersCommand}" Content="Refresh 🔄" Theme="{DynamicResource SolidButton}" />
+                            <Button Command="{Binding StartSelectedCommand}" Content="Start ▶" Background="#2ecc71" Foreground="White" />
+                            <Button Command="{Binding StopSelectedCommand}" Content="Stop ⏹" Background="#e74c3c" Foreground="White"/>
+                            <Button Command="{Binding ViewLogsCommand}" Content="Logs 📋" />
+                        </StackPanel>
+
+                        <ListBox Grid.Row="1" ItemsSource="{Binding Containers}" SelectedItem="{Binding SelectedContainer}" Background="Transparent">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Padding="10" CornerRadius="5" Background="#3E3E42" Margin="0,2">
+                                        <Grid ColumnDefinitions="Auto, *, Auto">
+                                            <!-- Status Indicator -->
+                                            <Ellipse Width="10" Height="10" Fill="{Binding StatusColor}" Margin="0,0,10,0" VerticalAlignment="Center"/>
+                                            
+                                            <!-- Info -->
+                                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                                <TextBlock Text="{Binding Name}" FontWeight="Bold" FontSize="14" Foreground="White"/>
+                                                <TextBlock Text="{Binding Image}" FontSize="11" Foreground="#AAAAAA"/>
+                                                <TextBlock Text="{Binding ShortId}" FontSize="10" Foreground="#888888"/>
+                                            </StackPanel>
+                                            
+                                            <!-- State Text -->
+                                            <TextBlock Grid.Column="2" Text="{Binding State}" VerticalAlignment="Center" FontSize="12" Foreground="#CCCCCC"/>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                    </Grid>
+                </Border>
+
+                <!-- Splitter -->
+                <GridSplitter Grid.Column="1" Background="Transparent" ResizeDirection="Columns"/>
+
+                <!-- Logs / Details Area -->
+                <Border Grid.Column="2" Background="#2D2D30" CornerRadius="8" Padding="10" BoxShadow="0 4 8 0 #000000">
+                    <Grid RowDefinitions="Auto, *">
+                        <TextBlock Text="LOGS" FontWeight="Bold" Margin="0,0,0,10" Foreground="White"/>
+                        <TextBox Grid.Row="1" 
+                                 Text="{Binding LogsText}" 
+                                 IsReadOnly="True" 
+                                 TextWrapping="Wrap" 
+                                 AcceptsReturn="True"
+                                 FontFamily="Consolas, Monospace"
+                                 FontSize="12"
+                                 Background="#1E1E1E"
+                                 Foreground="#D4D4D4"
+                                 BorderThickness="0"/>
+                    </Grid>
+                </Border>
+            </Grid>
+
+            <!-- Footer -->
+            <TextBlock Grid.Row="2" Text="Powered by Avalonia UI &amp; Docker.DotNet | Created by Jacky" 
+                       HorizontalAlignment="Center" Margin="0,10,0,0" FontSize="10" Foreground="#555555"/>
+        </Grid>
+    </Panel>
+</Window>
