@@ -1,0 +1,210 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:DataExporter.ViewModels"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="900" d:DesignHeight="700"
+        x:Class="DataExporter.Views.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Title="DataExporter - Enterprise SQL Utility"
+        Width="900" Height="700"
+        WindowStartupLocation="CenterScreen"
+        Background="#1E1E1E">
+
+    <Design.DataContext>
+        <vm:MainWindowViewModel/>
+    </Design.DataContext>
+
+    <Window.Styles>
+        <Style Selector="TextBlock">
+            <Setter Property="Foreground" Value="#E0E0E0"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+        <Style Selector="TextBox">
+            <Setter Property="Background" Value="#252526"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderBrush" Value="#3E3E42"/>
+            <Setter Property="CornerRadius" Value="3"/>
+            <Setter Property="Padding" Value="8"/>
+        </Style>
+        <Style Selector="ComboBox">
+            <Setter Property="Background" Value="#252526"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderBrush" Value="#3E3E42"/>
+            <Setter Property="CornerRadius" Value="3"/>
+            <Setter Property="Padding" Value="8"/>
+            <Setter Property="HorizontalAlignment" Value="Stretch"/>
+        </Style>
+        <Style Selector="Button">
+            <Setter Property="Background" Value="#0078D7"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Padding" Value="20,10"/>
+            <Setter Property="CornerRadius" Value="4"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+        </Style>
+        <Style Selector="Button:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="#1089EA"/>
+        </Style>
+        <Style Selector="Button.secondary">
+            <Setter Property="Background" Value="#444444"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Padding" Value="10,5"/>
+        </Style>
+        <Style Selector="Button.secondary:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="#555555"/>
+        </Style>
+        <Style Selector="CheckBox">
+            <Setter Property="Foreground" Value="#E0E0E0"/>
+        </Style>
+        <Style Selector="Border.Card">
+            <Setter Property="Background" Value="#2D2D30"/>
+            <Setter Property="CornerRadius" Value="5"/>
+            <Setter Property="Padding" Value="15"/>
+            <Setter Property="Margin" Value="0,0,0,15"/>
+            <Setter Property="BoxShadow" Value="0 2 5 #000000"/>
+        </Style>
+    </Window.Styles>
+
+    <Grid RowDefinitions="Auto, *" Margin="20">
+        
+        <!-- Header -->
+        <StackPanel Grid.Row="0" Margin="0,0,0,20">
+            <TextBlock Text="DataExporter" FontSize="28" FontWeight="Bold" Foreground="#0078D7"/>
+            <TextBlock Text="Extract, Mask, and Secure your Database Data" FontSize="14" Foreground="#AAAAAA"/>
+        </StackPanel>
+
+        <!-- Main Content -->
+        <Grid Grid.Row="1" ColumnDefinitions="2*, 1*">
+            
+            <!-- Left Panel: Configuration -->
+            <ScrollViewer Grid.Column="0" Margin="0,0,20,0">
+                <StackPanel>
+                    
+                    <!-- 1. Database Connection -->
+                    <Border Classes="Card">
+                        <StackPanel Spacing="12">
+                            <Grid ColumnDefinitions="*, Auto">
+                                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="10">
+                                    <TextBlock Text="🔌" FontSize="20"/>
+                                    <TextBlock Text="Source Connection" FontWeight="Bold" FontSize="16"/>
+                                </StackPanel>
+                                <Button Grid.Column="1" Command="{Binding TestConnectionCommand}" Content="Test Connection" Classes="secondary"/>
+                            </Grid>
+                            
+                            <Grid ColumnDefinitions="*, 2*" RowDefinitions="Auto, Auto" Margin="0,5,0,0">
+                                <TextBlock Grid.Row="0" Grid.Column="0" Text="Database Type" Margin="0,0,10,10"/>
+                                <ComboBox Grid.Row="0" Grid.Column="1" 
+                                          ItemsSource="{Binding DatabaseTypes}" 
+                                          SelectedItem="{Binding SelectedDatabaseType}"
+                                          Margin="0,0,0,10"/>
+                                
+                                <TextBlock Grid.Row="1" Grid.Column="0" Text="Connection String" VerticalAlignment="Top" Margin="0,5,10,0"/>
+                                <TextBox Grid.Row="1" Grid.Column="1" 
+                                         Text="{Binding ConnectionString}" 
+                                         AcceptsReturn="True" TextWrapping="Wrap" Height="60"
+                                         FontFamily="Consolas"/>
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- 2. SQL Query -->
+                    <Border Classes="Card">
+                        <StackPanel Spacing="12">
+                            <Grid ColumnDefinitions="*, Auto">
+                                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="10">
+                                    <TextBlock Text="🔍" FontSize="20"/>
+                                    <TextBlock Text="SQL Query" FontWeight="Bold" FontSize="16"/>
+                                </StackPanel>
+                                <Button Grid.Column="1" Command="{Binding TestQueryCommand}" Content="Test Query (Preview)" Classes="secondary"/>
+                            </Grid>
+                            
+                            <TextBox Text="{Binding Query}" 
+                                     Height="120" AcceptsReturn="True" TextWrapping="Wrap" 
+                                     FontFamily="Consolas"
+                                     Watermark="SELECT * FROM ..."/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- 3. Export Settings (Output, Masking) -->
+                    <Border Classes="Card">
+                        <StackPanel Spacing="12">
+                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                <TextBlock Text="⚙️" FontSize="20"/>
+                                <TextBlock Text="Export Configuration" FontWeight="Bold" FontSize="16"/>
+                            </StackPanel>
+
+                            <Grid ColumnDefinitions="*, *" RowDefinitions="Auto, Auto, Auto">
+                                <!-- Format -->
+                                <StackPanel Grid.Row="0" Grid.Column="0" Margin="0,0,10,15">
+                                    <TextBlock Text="Format" Margin="0,0,0,5"/>
+                                    <ComboBox ItemsSource="{Binding OutputFormats}" 
+                                              SelectedItem="{Binding SelectedFormat}"/>
+                                </StackPanel>
+
+                                <!-- Compression -->
+                                <StackPanel Grid.Row="0" Grid.Column="1" VerticalAlignment="Center" Margin="10,0,0,0">
+                                    <CheckBox IsChecked="{Binding Compress}" Content="Compress Output (.zip)"/>
+                                </StackPanel>
+
+                                <!-- Masking Toggle -->
+                                <StackPanel Grid.Row="1" Grid.ColumnSpan="2" Margin="0,0,0,10">
+                                    <CheckBox IsChecked="{Binding Masking}" Content="Enable Sensitive Data Masking" FontWeight="SemiBold"/>
+                                </StackPanel>
+
+                                <!-- Masking Fields -->
+                                <StackPanel Grid.Row="2" Grid.ColumnSpan="2" IsVisible="{Binding Masking}">
+                                    <TextBlock Text="Fields to Mask (comma separated)" FontSize="12" Margin="0,0,0,5"/>
+                                    <TextBox Text="{Binding MaskFields}" Watermark="e.g. Email, SSN, CreditCard" FontFamily="Consolas"/>
+                                    <TextBlock Text="* These fields will be partially hidden in the output." FontSize="11" Foreground="#808080" Margin="0,3,0,0"/>
+                                </StackPanel>
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Actions -->
+                    <Button Command="{Binding ExportCommand}" 
+                            IsEnabled="{Binding !IsBusy}"
+                            HorizontalAlignment="Stretch" HorizontalContentAlignment="Center">
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <TextBlock Text="🚀" Foreground="White"/>
+                            <TextBlock Text="{Binding IsBusy, Converter={x:Static StringConverters.IsNotNullOrEmpty}, ConverterParameter='Processing...', FallbackValue='Start Export'}" 
+                                       Foreground="White" FontWeight="Bold"/>
+                        </StackPanel>
+                    </Button>
+
+                </StackPanel>
+            </ScrollViewer>
+
+            <!-- Right Panel: Logs & Result -->
+            <Grid Grid.Column="1" RowDefinitions="Auto, *, Auto">
+                <TextBlock Text="Execution Log" FontWeight="Bold" Margin="0,0,0,10"/>
+                
+                <Border Grid.Row="1" Background="#252526" BorderBrush="#3E3E42" BorderThickness="1" CornerRadius="3">
+                    <ScrollViewer>
+                        <ItemsControl ItemsSource="{Binding Logs}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding}" 
+                                               FontSize="11" FontFamily="Consolas" TextWrapping="Wrap" 
+                                               Margin="5,2" Foreground="#D0D0D0"/>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </Border>
+
+                <!-- Last Export Info -->
+                <StackPanel Grid.Row="2" Margin="0,15,0,0" IsVisible="{Binding LastExportPath, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                    <TextBlock Text="Last Export:" FontSize="12" FontWeight="Bold" Foreground="#4CAF50"/>
+                    <TextBox Text="{Binding LastExportPath}" IsReadOnly="True" 
+                             BorderThickness="0" Background="Transparent" 
+                             FontSize="11" Foreground="#80CBC4" TextWrapping="Wrap"/>
+                    <Button Command="{Binding OpenFolderCommand}" Content="Open Folder" 
+                            Classes="secondary" Margin="0,5,0,0" HorizontalAlignment="Right" Background="#444"/>
+                </StackPanel>
+            </Grid>
+        </Grid>
+    </Grid>
+</Window>
