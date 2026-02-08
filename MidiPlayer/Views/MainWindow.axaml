@@ -1,0 +1,117 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:MidiPlayer.ViewModels"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="500"
+        x:Class="MidiPlayer.Views.MainWindow"
+        x:DataType="vm:MainViewModel"
+        Icon=""
+        Title="Jacky's Retro Midi Player"
+        Width="800" Height="500"
+        TransparencyLevelHint="AcrylicBlur"
+        Background="#1a1a1a"
+        ExtendClientAreaToDecorationsHint="True">
+
+    <Design.DataContext>
+        <vm:MainViewModel/>
+    </Design.DataContext>
+
+    <Window.Styles>
+        <Style Selector="Button.retro">
+            <Setter Property="Background" Value="#333333"/>
+            <Setter Property="Foreground" Value="#00FF00"/>
+            <Setter Property="BorderBrush" Value="#00FF00"/>
+            <Setter Property="BorderThickness" Value="2"/>
+            <Setter Property="FontFamily" Value="Courier New"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="CornerRadius" Value="0"/>
+            <Setter Property="Padding" Value="10,5"/>
+        </Style>
+        <Style Selector="Button.retro:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="#00FF00"/>
+            <Setter Property="Foreground" Value="Black"/>
+        </Style>
+        
+        <Style Selector="TextBlock.lcd">
+            <Setter Property="FontFamily" Value="Courier New"/>
+            <Setter Property="Foreground" Value="#00FF00"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+        </Style>
+    </Window.Styles>
+
+    <Grid RowDefinitions="Auto, *, Auto" Margin="20,40,20,20">
+        
+        <!-- Header / Display -->
+        <Border Grid.Row="0" BorderBrush="#555" BorderThickness="4" Background="Black" Padding="15" Margin="0,0,0,20" BoxShadow="0 0 10 2 #00FF00">
+            <Grid ColumnDefinitions="*, Auto">
+                <StackPanel Grid.Column="0" Spacing="5">
+                    <TextBlock Text="{Binding StatusText}" Classes="lcd" FontSize="18"/>
+                    <TextBlock Classes="lcd" FontSize="24">
+                        <Run Text="{Binding CurrentTime}"/>
+                        <Run Text=" / "/>
+                        <Run Text="{Binding TotalTime}"/>
+                    </TextBlock>
+                </StackPanel>
+                
+                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                    <TextBlock Text="VOL" Classes="lcd" VerticalAlignment="Center"/>
+                    <Slider Value="{Binding Volume}" Minimum="0" Maximum="1" Width="100"/>
+                    
+                    <TextBlock Text="SPD" Classes="lcd" VerticalAlignment="Center" Margin="10,0,0,0"/>
+                    <Slider Value="{Binding Tempo}" Minimum="0.5" Maximum="2.0" Width="100"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- Playlist -->
+        <Grid Grid.Row="1" ColumnDefinitions="*, 200">
+            <ListBox Grid.Column="0" ItemsSource="{Binding Playlist}" SelectedItem="{Binding SelectedTrack}" Background="#222" BorderBrush="#444" BorderThickness="2">
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <Grid ColumnDefinitions="Auto, *">
+                            <TextBlock Text="♪ " Foreground="Yellow" Grid.Column="0"/>
+                            <TextBlock Text="{Binding FileName}" Foreground="White" Grid.Column="1"/>
+                        </Grid>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+            
+            <!-- Side Controls -->
+            <StackPanel Grid.Column="1" Spacing="10" Margin="10,0,0,0">
+                <Button Classes="retro" Content="Add Files" Command="{Binding AddFilesCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"/>
+                <Button Classes="retro" Content="Load List" Command="{Binding LoadPlaylistCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"/>
+                <Button Classes="retro" Content="Save List" Command="{Binding SavePlaylistCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"/>
+                <CheckBox Content="Loop" IsChecked="{Binding IsLooping}" Foreground="#00FF00" Margin="5"/>
+                
+                <Border BorderBrush="#444" BorderThickness="1" Padding="5" Margin="0,20,0,0">
+                    <StackPanel>
+                        <TextBlock Text="CHANNELS" Classes="lcd" FontSize="12" HorizontalAlignment="Center" Margin="0,0,0,5"/>
+                        <!-- Visual representation only for now -->
+                        <UniformGrid Columns="4" Rows="4">
+                             <!-- Generating dummy LEDs -->
+                             <Ellipse Width="10" Height="10" Fill="Green" Margin="2"/>
+                             <Ellipse Width="10" Height="10" Fill="DarkGreen" Margin="2"/>
+                             <Ellipse Width="10" Height="10" Fill="DarkGreen" Margin="2"/>
+                             <Ellipse Width="10" Height="10" Fill="Green" Margin="2"/>
+                             <Ellipse Width="10" Height="10" Fill="DarkGreen" Margin="2"/>
+                             <Ellipse Width="10" Height="10" Fill="DarkGreen" Margin="2"/>
+                             <Ellipse Width="10" Height="10" Fill="Green" Margin="2"/>
+                             <Ellipse Width="10" Height="10" Fill="DarkGreen" Margin="2"/>
+                        </UniformGrid>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </Grid>
+
+        <!-- Transport Controls -->
+        <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="20" HorizontalAlignment="Center" Margin="0,20,0,0">
+            <Button Classes="retro" Content="⏮" Width="50" HorizontalContentAlignment="Center"/>
+            <Button Classes="retro" Content="STOP" Command="{Binding StopCommand}" Width="80" HorizontalContentAlignment="Center"/>
+            <Button Classes="retro" Content="PLAY" Command="{Binding PlayCommand}" Width="80" HorizontalContentAlignment="Center" Background="#004400"/>
+            <Button Classes="retro" Content="PAUSE" Command="{Binding PauseCommand}" Width="80" HorizontalContentAlignment="Center"/>
+            <Button Classes="retro" Content="⏭" Width="50" HorizontalContentAlignment="Center"/>
+        </StackPanel>
+
+    </Grid>
+</Window>
