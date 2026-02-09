@@ -1,0 +1,89 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="clr-namespace:TerminalNet.ViewModels;assembly=TerminalNet"
+        xmlns:models="clr-namespace:TerminalNet.Models;assembly=TerminalNet"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        x:Class="TerminalNet.Views.MainWindow"
+        x:DataType="vm:MainViewModel"
+        Icon=""
+        Title="TerminalNet"
+        Background="#1E1E1E"
+        TransparencyLevelHint="AcrylicBlur"
+        ExtendClientAreaToDecorationsHint="True">
+
+  <Window.Styles>
+    <Style Selector="TabItem">
+      <Setter Property="Padding" Value="10,5"/>
+      <Setter Property="Background" Value="#2D2D30"/>
+      <Setter Property="Foreground" Value="White"/>
+      <Setter Property="BorderThickness" Value="0"/>
+    </Style>
+    <Style Selector="TabItem:selected">
+      <Setter Property="Background" Value="#3E3E42"/>
+      <Setter Property="Foreground" Value="#007ACC"/>
+    </Style>
+  </Window.Styles>
+
+  <Grid RowDefinitions="Auto, *">
+    <!-- Title Bar / Tabs Header Area -->
+    <Grid Grid.Row="0" ColumnDefinitions="Auto, *, Auto" Background="#252526" Height="35">
+      <TextBlock Text="TerminalNet" VerticalAlignment="Center" Margin="10,0" FontWeight="Bold" Foreground="#CCCCCC"/>
+      <Button Grid.Column="2" Content="+" Command="{Binding AddTabCommand}"
+              Background="Transparent" BorderThickness="0" Foreground="White"
+              HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,10,0"
+              ToolTip.Tip="New Tab"/>
+    </Grid>
+
+    <!-- Main Content -->
+    <TabControl Grid.Row="1" ItemsSource="{Binding Sessions}" SelectedItem="{Binding SelectedSession}" Margin="0,-35,0,0" Padding="0,35,0,0">
+      <TabControl.ItemTemplate>
+        <DataTemplate DataType="vm:TerminalSessionViewModel">
+          <StackPanel Orientation="Horizontal" Spacing="5">
+            <TextBlock Text="{Binding Header}" VerticalAlignment="Center"/>
+            <Button Content="x" 
+                    Command="{Binding $parent[TabControl].((vm:MainViewModel)DataContext).CloseTabCommand}" 
+                    CommandParameter="{Binding}"
+                    Padding="2" Background="Transparent" BorderThickness="0" Foreground="Gray"/>
+          </StackPanel>
+        </DataTemplate>
+      </TabControl.ItemTemplate>
+
+      <TabControl.ContentTemplate>
+        <DataTemplate DataType="vm:TerminalSessionViewModel">
+          <Grid RowDefinitions="*, Auto">
+            <!-- Output Area -->
+            <ListBox x:Name="OutputList" ItemsSource="{Binding OutputItems}" Background="#1E1E1E" BorderThickness="0"
+                     ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+              <ListBox.ItemTemplate>
+                <DataTemplate DataType="models:TerminalItem">
+                  <TextBlock Text="{Binding Text}" Foreground="{Binding Foreground}" TextWrapping="Wrap" FontFamily="Cascadia Code, Consolas, Monospace"/>
+                </DataTemplate>
+              </ListBox.ItemTemplate>
+              <ListBox.Styles>
+                <Style Selector="ListBoxItem">
+                  <Setter Property="Padding" Value="2"/>
+                  <Setter Property="Margin" Value="0"/>
+                  <Setter Property="MinHeight" Value="0"/>
+                </Style>
+              </ListBox.Styles>
+            </ListBox>
+
+            <!-- Input Area -->
+            <Grid Grid.Row="1" ColumnDefinitions="Auto, *" Background="#2D2D30">
+              <TextBlock Text="{Binding Prompt}" Foreground="LimeGreen" VerticalAlignment="Center" Margin="5,0" FontFamily="Cascadia Code, Consolas, Monospace" FontWeight="Bold"/>
+              <TextBox Text="{Binding CurrentInput, Mode=TwoWay}" BorderThickness="0" Background="Transparent" Foreground="White"
+                       CaretBrush="White" FontFamily="Cascadia Code, Consolas, Monospace"
+                       VerticalAlignment="Center">
+                <TextBox.KeyBindings>
+                  <KeyBinding Gesture="Enter" Command="{Binding ExecuteCommand}"/>
+                </TextBox.KeyBindings>
+              </TextBox>
+            </Grid>
+          </Grid>
+        </DataTemplate>
+      </TabControl.ContentTemplate>
+    </TabControl>
+  </Grid>
+</Window>
