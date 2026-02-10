@@ -1,0 +1,15 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="ObjectCounter.Views.StatsView">
+    <Grid>
+        <DataGrid ItemsSource="{Binding LogEntries}" AutoGenerateColumns="False" IsReadOnly="True" GridLinesVisibility="All" BorderThickness="1" BorderBrush="Gray">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="ID" Binding="{Binding Id}" Width="50"/>
+                <DataGridTextColumn Header="Timestamp" Binding="{Binding Timestamp}" Width="200"/>
+                <DataGridTextColumn Header="Object Type" Binding="{Binding ObjectType}" Width="150"/>
+                <DataGridTextColumn Header="Count" Binding="{Binding Count}" Width="100"/>
+                <DataGridTextColumn Header="Source" Binding="{Binding Source}" Width="150"/>
+            </DataGrid.Columns>
+        </DataGrid>
+    </Grid>
+</UserControl>

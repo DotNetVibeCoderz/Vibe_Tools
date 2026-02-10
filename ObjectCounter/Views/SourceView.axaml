@@ -1,0 +1,27 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="ObjectCounter.Views.SourceView">
+    <Grid RowDefinitions="Auto,*">
+        <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="10" Margin="0,0,0,10">
+            <ComboBox SelectedIndex="{Binding SourceTypeIndex}" Width="150">
+                <ComboBoxItem>Webcam</ComboBoxItem>
+                <ComboBoxItem>Image File</ComboBoxItem>
+                <ComboBoxItem>Video File</ComboBoxItem>
+                <ComboBoxItem>IP Camera (URL)</ComboBoxItem>
+            </ComboBox>
+            <TextBox Text="{Binding SourceUrl}" Watermark="Path or URL" Width="250" IsVisible="{Binding IsUrlVisible}"/>
+            <Button Content="..." Command="{Binding BrowseCommand}" IsVisible="{Binding IsBrowseVisible}" Width="30"/>
+            <Button Content="Start" Command="{Binding StartCommand}" Background="#4CAF50"/>
+            <Button Content="Stop" Command="{Binding StopCommand}" Background="#F44336"/>
+            <CheckBox IsChecked="{Binding ShowBoxes}" Content="Boxes"/>
+            <CheckBox IsChecked="{Binding ShowLabels}" Content="Labels"/>
+        </StackPanel>
+        
+        <Border Grid.Row="1" BorderBrush="#333" BorderThickness="1" Background="Black">
+            <Image Source="{Binding CurrentFrame}" Stretch="Uniform"/>
+        </Border>
+    </Grid>
+</UserControl>
