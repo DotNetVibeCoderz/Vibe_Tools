@@ -1,0 +1,1 @@
+note("c3 d3 e3").s("sine").lpf(300).room(0.8)

@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>StrudelNet</title>
+    <base href="/" />
+    <link href="css/app.css" rel="stylesheet" />
+    <link href="StrudelNet.styles.css" rel="stylesheet" />
+    <style>
+        /* Cyberpunk/Dark Theme */
+        body {
+            background-color: #121212;
+            color: #e0e0e0;
+            font-family: 'Consolas', 'Courier New', monospace;
+        }
+        .sidebar {
+            background-color: #1e1e1e;
+            border-right: 1px solid #333;
+        }
+        .top-row {
+            background-color: #252526;
+            border-bottom: 1px solid #333;
+        }
+        textarea.code-editor {
+            background-color: #1e1e1e;
+            color: #d4d4d4;
+            border: 1px solid #333;
+            width: 100%;
+            height: 100%;
+            font-family: 'Fira Code', 'Consolas', monospace;
+            font-size: 16px;
+            resize: none;
+            padding: 10px;
+        }
+        button.btn-strudel {
+            background-color: #007acc;
+            color: white;
+            border: none;
+            padding: 5px 15px;
+            cursor: pointer;
+        }
+        button.btn-strudel:hover {
+            background-color: #005f9e;
+        }
+        button.btn-stop {
+            background-color: #cecece;
+            color: black; 
+        }
+    </style>
+</head>
+<body>
+    <div id="app">Loading StrudelNet...</div>
+
+    <div id="blazor-error-ui">
+        An unhandled error has occurred.
+        <a href="" class="reload">Reload</a>
+        <a class="dismiss">🗙</a>
+    </div>
+	<script src="https://unpkg.com/@strudel/web@1.0.3"></script>
+    <script src="_framework/blazor.webview.js"></script>
+   
+    <!-- Strudel Core Integration -->
+    <script>
+		initStrudel();
+			
+		function play(code){
+			try{
+				evaluate(code);
+				//alert(code);
+				//note(code).jux(rev).play();
+			} catch (err) {
+				console.error("Strudel Error:", err);
+				alert(err);
+			}
+		}
+			
+		function stop(){
+			hush();       
+		}
+        // We revert to CDN because localizing the worker files and assets for Strudel 
+        // is complex without a proper bundler. 
+        //import { evaluate, silence, controls, initAudioOnFirstClick, getAudioContext } from 'https://esm.sh/@strudel/web@latest';
+
+        // 1. Force init audio on any click in the document
+        //initAudioOnFirstClick();
+
+        // 2. Also listen manually just in case
+        /*
+		document.addEventListener('click', async () => {
+            const ctx = getAudioContext();
+            if (ctx && ctx.state === 'suspended') {
+                console.log("Resuming AudioContext on click...");
+                await ctx.resume();
+            }
+        });
+
+        let currentScheduler = null;
+		*/
+		/*
+        // Override the placeholder with the real implementation
+        window.strudelInterop = {
+            evaluate: (code) => {
+                try {
+                    console.log("Evaluating code...");
+                    
+                    const ctx = getAudioContext();
+                    if (ctx.state === 'suspended') {
+                        console.warn("AudioContext is suspended. Attempting to resume...");
+                        try {
+                            await ctx.resume();
+                            console.log("AudioContext resumed.");
+                        } catch (e) {
+                            console.error("Failed to resume AudioContext:", e);
+                        }
+                    }
+
+                    if (currentScheduler) {
+                         // evaluate() handles stopping/updating usually
+                    }
+					const result = await evaluate(code); 
+					
+                    if (result && result.scheduler) {
+                        currentScheduler = result.scheduler;
+                    } else {
+                        currentScheduler = result; 
+                    }
+
+                    console.log("Strudel pattern started. Result:", result);
+                    
+					return "Success";
+                } catch (err) {
+                    console.error("Strudel Error:", err);
+					alert(err);
+                    return "Error: " + err.message;
+                }
+            },
+            stop: () => {
+                console.log("Stopping...");
+                
+				evaluate('silence');
+                
+                if (currentScheduler && typeof currentScheduler.stop === 'function') {
+                    currentScheduler.stop();
+                }
+                currentScheduler = null;
+				
+            }
+        };
+        */
+        //console.log("Strudel Engine Loaded Successfully");
+    </script>
+</body>
+</html>

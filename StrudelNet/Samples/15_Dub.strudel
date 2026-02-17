@@ -1,0 +1,1 @@
+note("[c3,e3,g3]").s("dub").lpf(200).delay(0.5).room(0.8)

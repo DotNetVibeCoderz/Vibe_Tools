@@ -1,0 +1,1 @@
+s("bd*16").bank("glitch").distort(1).chop(4)

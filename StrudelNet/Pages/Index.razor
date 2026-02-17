@@ -1,0 +1,217 @@
+@page "/"
+@inject IJSRuntime JSRuntime
+@inject SampleService SampleService
+@using System.IO
+@using Microsoft.Win32
+
+<div class="strudel-container">
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <h3>Samples</h3>
+        <ul>
+            @foreach (var sample in Samples)
+            {
+                <li @onclick="() => LoadSample(sample)">@sample</li>
+            }
+        </ul>
+        <div class="sidebar-bottom">
+            <button @onclick="LoadFromFile">Open</button>
+            <button @onclick="SaveToFile">Save</button>
+            <button @onclick="QuitApp" class="btn-exit">Exit</button>
+        </div>
+    </div>
+
+    <!-- Main Editor Area -->
+    <div class="main-editor">
+        <div class="top-bar">
+            <button class="btn-strudel" @onclick="RunCode">▶ Play (Ctrl+Enter)</button>
+            <button class="btn-stop" @onclick="StopCode">■ Stop (Ctrl+.)</button>
+            <span class="status">@StatusMessage</span>
+        </div>
+        <textarea @bind="Code" @onkeydown="HandleKeyDown" class="code-editor" spellcheck="false"></textarea>
+    </div>
+</div>
+
+<style>
+    .strudel-container {
+        display: flex;
+        height: 100vh;
+        width: 100vw;
+        overflow: hidden;
+    }
+
+    .sidebar {
+        width: 250px;
+        background-color: #252526;
+        color: #ddd;
+        display: flex;
+        flex-direction: column;
+        border-right: 1px solid #333;
+    }
+
+    .sidebar h3 {
+        padding: 10px;
+        margin: 0;
+        background-color: #333;
+        font-size: 14px;
+        text-transform: uppercase;
+    }
+
+    .sidebar ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        overflow-y: auto;
+        flex-grow: 1;
+    }
+
+    .sidebar li {
+        padding: 8px 15px;
+        cursor: pointer;
+        font-size: 13px;
+        border-bottom: 1px solid #2a2a2a;
+    }
+
+    .sidebar li:hover {
+        background-color: #37373d;
+    }
+
+    .sidebar-bottom {
+        padding: 10px;
+        border-top: 1px solid #333;
+        display: flex;
+        gap: 5px;
+    }
+    
+    .sidebar-bottom button {
+        flex: 1;
+        padding: 5px;
+        background: #3c3c3c;
+        border: 1px solid #555;
+        color: white;
+        cursor: pointer;
+        font-size: 12px;
+    }
+
+    .sidebar-bottom button.btn-exit {
+        background-color: #8b0000;
+        border-color: #a00000;
+    }
+
+    .sidebar-bottom button:hover {
+        filter: brightness(1.2);
+    }
+
+    .main-editor {
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+        background-color: #1e1e1e;
+    }
+
+    .top-bar {
+        padding: 8px;
+        background-color: #333;
+        display: flex;
+        gap: 10px;
+        align-items: center;
+    }
+
+    .status {
+        margin-left: auto;
+        font-size: 12px;
+        color: #aaa;
+    }
+
+    .code-editor {
+        flex-grow: 1;
+        background-color: #1e1e1e;
+        color: #d4d4d4; /* VS Code Default Dark */
+        font-family: 'Consolas', 'Courier New', monospace;
+        font-size: 16px;
+        padding: 15px;
+        border: none;
+        outline: none;
+        line-height: 1.5;
+    }
+</style>
+
+@code {
+    private string Code { get; set; } = "// Welcome to StrudelNet\n// Type code and press Ctrl+Enter to play\n\ns('bd sd').bank('roland-tr-909').cps(0.5)";
+    private List<string> Samples { get; set; } = new List<string>();
+    private string StatusMessage { get; set; } = "Ready";
+
+    protected override void OnInitialized()
+    {
+        RefreshSamples();
+    }
+
+    private void RefreshSamples()
+    {
+        Samples = SampleService.GetSamples();
+    }
+
+    private async Task LoadSample(string fileName)
+    {
+        Code = await SampleService.LoadSample(fileName);
+        StatusMessage = $"Loaded {fileName}";
+    }
+
+    private async Task LoadFromFile()
+    {
+        var openFileDialog = new OpenFileDialog();
+        openFileDialog.Filter = "Strudel Files (*.strudel)|*.strudel|All files (*.*)|*.*";
+        if (openFileDialog.ShowDialog() == true)
+        {
+             Code = await File.ReadAllTextAsync(openFileDialog.FileName);
+             StatusMessage = $"Opened {Path.GetFileName(openFileDialog.FileName)}";
+        }
+    }
+
+    private async Task SaveToFile()
+    {
+        var saveFileDialog = new SaveFileDialog();
+        saveFileDialog.Filter = "Strudel Files (*.strudel)|*.strudel|All files (*.*)|*.*";
+        if (saveFileDialog.ShowDialog() == true)
+        {
+             await File.WriteAllTextAsync(saveFileDialog.FileName, Code);
+             StatusMessage = $"Saved {Path.GetFileName(saveFileDialog.FileName)}";
+        }
+    }
+
+    private async Task RunCode()
+    {
+        try
+        {
+            StatusMessage = "Playing...";
+            await JSRuntime.InvokeVoidAsync("play", Code);
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = "Error: " + ex.Message;
+        }
+    }
+
+    private async Task StopCode()
+    {
+        StatusMessage = "Stopped";
+        await JSRuntime.InvokeVoidAsync("stop");
+    }
+
+    private void QuitApp()
+    {
+        System.Windows.Application.Current.Shutdown();
+    }
+
+    private async Task HandleKeyDown(KeyboardEventArgs e)
+    {
+        if (e.CtrlKey && e.Key == "Enter")
+        {
+            await RunCode();
+        }
+        else if (e.CtrlKey && e.Key == ".")
+        {
+            await StopCode();
+        }
+    }
+}

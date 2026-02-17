@@ -1,0 +1,1 @@
+note("c2 d2 e2 f2").s("sawtooth").lpf(300).lpq(20).distort(0.8)
