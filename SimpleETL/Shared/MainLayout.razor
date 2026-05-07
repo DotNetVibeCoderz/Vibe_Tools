@@ -1,0 +1,70 @@
+@inherits LayoutComponentBase
+@using SimpleETL.Services
+@using MudBlazor
+@inject SettingsService Settings
+
+<MudThemeProvider @ref="_themeProvider" IsDarkMode="Settings.IsDarkMode" Theme="_theme" />
+<MudDialogProvider />
+<MudSnackbarProvider />
+
+<MudLayout>
+    <MudAppBar Elevation="1">
+        <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())" />
+        <MudText Typo="Typo.h5" Class="ml-3">SimpleETL</MudText>
+        <MudSpacer />
+        <MudIconButton Icon="@Icons.Material.Filled.Brightness4" Color="Color.Inherit" OnClick="@ToggleDarkMode" />
+    </MudAppBar>
+    <MudDrawer @bind-Open="_drawerOpen" Elevation="2">
+        <MudDrawerHeader>
+            <MudText Typo="Typo.h6">Navigation</MudText>
+        </MudDrawerHeader>
+        <NavMenu />
+    </MudDrawer>
+    <MudMainContent>
+        <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="pt-4 h-100">
+            @Body
+        </MudContainer>
+    </MudMainContent>
+</MudLayout>
+
+@code {
+    bool _drawerOpen = true;
+    private MudThemeProvider? _themeProvider;
+    private MudTheme _theme = new MudTheme()
+    {
+        Palette = new PaletteLight
+        {
+            Primary = Colors.Blue.Default,
+            AppbarBackground = Colors.Blue.Darken2,
+        },
+        PaletteDark = new PaletteDark
+        {
+            Primary = Colors.Blue.Lighten1,
+            AppbarBackground = Colors.Shades.Black,
+            Background = "#1E1E2D",
+            Surface = "#2B2B40",
+            DrawerBackground = "#1E1E2D"
+        }
+    };
+
+    protected override void OnInitialized()
+    {
+        Settings.OnChange += StateHasChanged;
+    }
+
+    public void Dispose()
+    {
+        Settings.OnChange -= StateHasChanged;
+    }
+
+    void DrawerToggle()
+    {
+        _drawerOpen = !_drawerOpen;
+    }
+
+    private void ToggleDarkMode()
+    {
+        Settings.IsDarkMode = !Settings.IsDarkMode;
+        Settings.Save();
+    }
+}

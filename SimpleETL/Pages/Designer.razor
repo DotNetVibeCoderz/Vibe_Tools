@@ -1,0 +1,569 @@
+@page "/designer"
+@page "/designer/{Id:int}"
+@using MudBlazor
+@using SimpleETL.Models
+@using SimpleETL.Data
+@using SimpleETL.Services
+@using Microsoft.Extensions.DependencyInjection
+@using System.Windows
+@using System.Threading
+@using System.Text.Json
+@using System.Text.Json.Nodes
+@inject NavigationManager NavigationManager
+@inject ISnackbar Snackbar
+@implements IDisposable
+
+<MudToolBar DisableBorders="true">
+    <MudText Typo="Typo.h5">ETL Designer @(Id.HasValue ? $"- Editing {Flow.Name}" : "- New Flow")</MudText>
+    <MudSpacer />
+    <MudButton StartIcon="@Icons.Material.Filled.PlayArrow" Color="Color.Success" Variant="Variant.Filled" OnClick="RunFlow" Disabled="IsRunning" Class="mr-2">Run</MudButton>
+    <MudButton StartIcon="@Icons.Material.Filled.Stop" Color="Color.Error" Variant="Variant.Filled" OnClick="StopFlow" Disabled="!IsRunning" Class="mr-4">Stop</MudButton>
+    <MudButton StartIcon="@Icons.Material.Filled.Save" Color="Color.Primary" Variant="Variant.Filled" OnClick="SaveFlow" Disabled="IsRunning">Save</MudButton>
+    <MudButton StartIcon="@Icons.Material.Filled.ImportExport" Color="Color.Secondary" Variant="Variant.Filled" OnClick="ExportFlow" Class="ml-2" Disabled="IsRunning">Export</MudButton>
+    <MudButton StartIcon="@Icons.Material.Filled.ArrowBack" Color="Color.Default" Variant="Variant.Text" OnClick="GoBack" Class="ml-2" Disabled="IsRunning">Back</MudButton>
+</MudToolBar>
+
+<MudGrid Class="mt-2 h-100 m-0">
+    <!-- Component Palette -->
+    <MudItem xs="3" Class="h-100 p-0 pr-2" Style="border-right: 1px solid #ddd; overflow-y:auto; max-height: calc(100vh - 120px);">
+        <MudText Typo="Typo.h6" Class="mb-2 pl-2">Components</MudText>
+        <MudExpansionPanels MultiExpansion="true">
+            @foreach (var categoryGroup in PaletteItems.GroupBy(x => x.Category))
+            {
+                <MudExpansionPanel Text="@categoryGroup.Key" IsExpanded="true">
+                    <MudList Clickable="true" Dense="true">
+                        @foreach (var subGroup in categoryGroup.GroupBy(x => x.SubCategory))
+                        {
+                            <MudListSubheader>@subGroup.Key</MudListSubheader>
+                            @foreach (var item in subGroup)
+                            {
+                                <div draggable="true" @ondragstart="@(() => OnDragStart(item.Name))" style="cursor: grab;">
+                                    <MudListItem Icon="@item.Icon" Text="@item.Name" OnClick="@(() => AddNode(item.Name))" Disabled="IsRunning" />
+                                </div>
+                            }
+                        }
+                    </MudList>
+                </MudExpansionPanel>
+            }
+        </MudExpansionPanels>
+    </MudItem>
+    
+    <!-- Canvas & Logs -->
+    <MudItem xs="6" Class="h-100 p-0" Style="display: flex; flex-direction: column; background-color: #f5f5f5;">
+        <div style="flex-grow: 1; overflow-y: auto; position: relative; padding-bottom: 20px;" 
+             @ondragover:preventDefault="true" 
+             @ondrop="OnDrop">
+            
+            <MudText Typo="Typo.subtitle1" Align="Align.Center" Class="text-muted mt-4">Canvas (Drag or Click components from left)</MudText>
+            
+            <div style="display: flex; flex-direction: column; align-items: center; padding: 20px; gap: 10px;">
+                @if (Nodes.Count == 0)
+                {
+                    <div style="border: 2px dashed #ccc; border-radius: 10px; width: 300px; height: 100px; display: flex; justify-content: center; align-items: center; color: #888; background-color: #fafafa;">
+                        Drop or Click First Node
+                    </div>
+                }
+
+                @for (int i = 0; i < Nodes.Count; i++)
+                {
+                    var node = Nodes[i];
+                    <MudCard Elevation="3" Style="@(SelectedNode == node ? "width: 320px; cursor: pointer; border: 2px solid #1976d2;" : "width: 320px; cursor: pointer; border: 1px solid #e0e0e0;")" 
+                             @onclick="@(() => EditNode(node))">
+                        <MudCardHeader Style="padding: 10px 16px; background-color: white;">
+                            <CardHeaderContent>
+                                <div class="d-flex align-center">
+                                    <MudIcon Icon="@GetNodeIcon(node.Type)" Size="MudBlazor.Size.Small" Class="mr-2" Color="@(SelectedNode == node ? Color.Primary : Color.Default)" />
+                                    <MudText Typo="Typo.subtitle2"><b>@node.Name</b></MudText>
+                                </div>
+                            </CardHeaderContent>
+                            <CardHeaderActions>
+                                @if(NodeStatuses.ContainsKey(node.Id))
+                                {
+                                    @if(NodeStatuses[node.Id] == "Running") {
+                                        <MudProgressCircular Size="MudBlazor.Size.Small" Color="Color.Primary" Indeterminate="true" Class="mr-2 mt-2" />
+                                    } else if(NodeStatuses[node.Id] == "Success") {
+                                        <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Color="Color.Success" Size="MudBlazor.Size.Small" Class="mr-2 mt-2" />
+                                    } else if(NodeStatuses[node.Id] == "Failed") {
+                                        <MudIcon Icon="@Icons.Material.Filled.Error" Color="Color.Error" Size="MudBlazor.Size.Small" Class="mr-2 mt-2" />
+                                    }
+                                }
+                                <MudIconButton Icon="@Icons.Material.Filled.Close" Color="Color.Error" Size="MudBlazor.Size.Small" OnClick="@(() => RemoveNode(node))" Disabled="IsRunning" />
+                            </CardHeaderActions>
+                        </MudCardHeader>
+                        <MudCardContent Style="padding: 8px 16px;">
+                            <MudText Typo="Typo.caption" Color="Color.Secondary">@node.Type</MudText>
+                        </MudCardContent>
+                    </MudCard>
+                    
+                    @if (i < Nodes.Count - 1)
+                    {
+                        <MudIcon Icon="@Icons.Material.Filled.ArrowDownward" Size="MudBlazor.Size.Large" Color="Color.Primary" />
+                    }
+                }
+            </div>
+        </div>
+
+        <MudPaper Elevation="4" Style="height: 250px; border-top: 1px solid #ddd; background-color: #1e1e1e; color: #d4d4d4; padding: 10px; overflow-y: auto; font-family: monospace;">
+            <MudText Typo="Typo.subtitle2" Style="color: #4CAF50; margin-bottom: 8px; border-bottom: 1px solid #333; padding-bottom: 4px;">Output Logs</MudText>
+            @foreach(var log in ExecutionLogs)
+            {
+                <div style="white-space: pre-wrap; font-size: 13px;">@log</div>
+            }
+            @if(ExecutionLogs.Count == 0)
+            {
+                <div style="color: #888; font-style: italic;">No logs yet. Click 'Run' to execute pipeline.</div>
+            }
+        </MudPaper>
+
+    </MudItem>
+
+    <!-- Properties & Variables -->
+    <MudItem xs="3" Class="h-100 p-0 pl-2" Style="border-left: 1px solid #ddd; overflow-y:auto; max-height: calc(100vh - 120px);">
+        
+        <MudExpansionPanels MultiExpansion="true" Class="mb-4">
+            <MudExpansionPanel Text="Flow Settings" IsExpanded="true">
+                <MudTextField @bind-Value="Flow.Name" Label="Flow Name" Variant="Variant.Outlined" Class="mb-3" Disabled="IsRunning" />
+                <MudTextField @bind-Value="Flow.Description" Label="Description" Variant="Variant.Outlined" Lines="3" Class="mb-3" Disabled="IsRunning" />
+                <MudSwitch @bind-Checked="Flow.IsScheduled" Label="Enable Schedule" Color="Color.Primary" Class="mb-3" Disabled="IsRunning" />
+                @if (Flow.IsScheduled)
+                {
+                    <MudTextField @bind-Value="Flow.CronExpression" Label="Cron Expression (e.g. * * * * *)" Variant="Variant.Outlined" Class="mb-3" Disabled="IsRunning" />
+                }
+            </MudExpansionPanel>
+
+            <MudExpansionPanel Text="Flow Variables" IsExpanded="true">
+                <div class="d-flex justify-end mb-2">
+                    <MudButton Size="MudBlazor.Size.Small" StartIcon="@Icons.Material.Filled.Add" Color="Color.Primary" OnClick="AddVariable" Disabled="IsRunning">Add Variable</MudButton>
+                </div>
+                @foreach(var v in Variables)
+                {
+                    <MudCard Elevation="1" Class="p-2 mb-2" Style="background-color: #fafafa; border: 1px solid #eee;">
+                        <div class="d-flex justify-space-between align-center mb-2">
+                            <MudTextField @bind-Value="v.Name" Label="Name" Margin="Margin.Dense" Variant="Variant.Outlined" Style="width: 120px;" Disabled="IsRunning" />
+                            <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" Size="MudBlazor.Size.Small" OnClick="@(() => RemoveVariable(v))" Disabled="IsRunning" />
+                        </div>
+                        <div class="d-flex gap-2">
+                            <MudSelect T="string" @bind-Value="v.Type" Label="Type" Margin="Margin.Dense" Variant="Variant.Outlined" Style="width: 100px;" Disabled="IsRunning">
+                                <MudSelectItem Value="@("String")">String</MudSelectItem>
+                                <MudSelectItem Value="@("Int")">Integer</MudSelectItem>
+                                <MudSelectItem Value="@("Double")">Double</MudSelectItem>
+                                <MudSelectItem Value="@("Boolean")">Boolean</MudSelectItem>
+                            </MudSelect>
+                            <MudTextField @bind-Value="v.InitialValue" Label="Initial Value" Margin="Margin.Dense" Variant="Variant.Outlined" Disabled="IsRunning" />
+                        </div>
+                    </MudCard>
+                }
+                @if(!Variables.Any()) {
+                    <MudText Typo="Typo.caption" Color="Color.Secondary">No variables defined. Add variables to use {{VarName}} in properties.</MudText>
+                }
+            </MudExpansionPanel>
+        </MudExpansionPanels>
+
+        @if (SelectedNode != null)
+        {
+            <MudText Typo="Typo.h6" Class="mb-2 pl-2">Node Properties</MudText>
+            <div class="d-flex justify-space-between align-center mb-2 pl-2 pr-2">
+                <MudText Typo="Typo.subtitle1"><b>@SelectedNode.Name</b></MudText>
+                <MudChip Size="MudBlazor.Size.Small" Color="Color.Primary">@SelectedNode.Type</MudChip>
+            </div>
+            
+            <MudTextField @bind-Value="SelectedNode.Name" Label="Display Name" Variant="Variant.Outlined" Class="mb-4" Disabled="IsRunning" />
+
+            @if (SelectedNode.Type == "Set Variable Value")
+            {
+                <MudSelect T="string" Label="Select Variable" Variant="Variant.Outlined" Class="mb-3" Value="@GetConfigValue("VariableName")" ValueChanged="@((string s) => SetConfigValue("VariableName", s))" Disabled="IsRunning">
+                    @foreach(var v in Variables) {
+                        <MudSelectItem Value="@v.Name">@v.Name</MudSelectItem>
+                    }
+                </MudSelect>
+                <MudTextField Value="@GetConfigValue("VariableValue")" ValueChanged="@((string s) => SetConfigValue("VariableValue", s))" Label="New Value (Supports {{var}})" Variant="Variant.Outlined" Class="mb-3" Disabled="IsRunning" />
+            }
+            else if (SelectedNode.Type.Contains("REST API"))
+            {
+                <MudTextField Value="@GetConfigValue("Connection")" ValueChanged="@((string s) => SetConfigValue("Connection", s))" Label="API URL (Supports {{var}})" Variant="Variant.Outlined" Class="mb-3" Disabled="IsRunning" />
+                
+                <MudSelect T="string" Label="HTTP Method" Variant="Variant.Outlined" Class="mb-3" Value="@(string.IsNullOrEmpty(GetConfigValue("HttpMethod")) ? (SelectedNode.Type.Contains("Destination") ? "POST" : "GET") : GetConfigValue("HttpMethod"))" ValueChanged="@((string s) => SetConfigValue("HttpMethod", s))" Disabled="IsRunning">
+                    <MudSelectItem Value="@("GET")">GET</MudSelectItem>
+                    <MudSelectItem Value="@("POST")">POST</MudSelectItem>
+                    <MudSelectItem Value="@("PUT")">PUT</MudSelectItem>
+                    <MudSelectItem Value="@("DELETE")">DELETE</MudSelectItem>
+                </MudSelect>
+
+                <MudTextField Value="@GetConfigValue("Payload")" ValueChanged="@((string s) => SetConfigValue("Payload", s))" Label="Payload (Use {{data}} for pipeline output, {{var}} for variables)" Variant="Variant.Outlined" Lines="5" Class="mb-3" Disabled="IsRunning" />
+            }
+            else if (SelectedNode.Type.Contains("Source") || SelectedNode.Type.Contains("Destination"))
+            {
+                <MudTextField Value="@GetConfigValue("Connection")" ValueChanged="@((string s) => SetConfigValue("Connection", s))" Label="Connection String / URL / Path (Supports {{var}})" Variant="Variant.Outlined" Lines="2" Class="mb-3" Disabled="IsRunning" />
+                @if(SelectedNode.Type.Contains("SQL") || SelectedNode.Type.Contains("Oracle") || SelectedNode.Type.Contains("PostgreSQL") || SelectedNode.Type.Contains("MySQL") || SelectedNode.Type.Contains("BigQuery") || SelectedNode.Type.Contains("Snowflake"))
+                {
+                    <MudTextField Value="@GetConfigValue("QueryOrTable")" ValueChanged="@((string s) => SetConfigValue("QueryOrTable", s))" Label="Query / Table Name (Supports {{var}})" Variant="Variant.Outlined" Lines="3" Class="mb-3" Disabled="IsRunning" />
+                }
+            }
+            else if (SelectedNode.Type == "PowerShell Script" || SelectedNode.Type == "Command Line")
+            {
+                string defaultCmd = SelectedNode.Type == "PowerShell Script" ? "Write-Host 'Hello from SimpleETL'" : "echo Hello from SimpleETL";
+                <MudTextField Value="@(string.IsNullOrEmpty(GetConfigValue("Script")) ? defaultCmd : GetConfigValue("Script"))" ValueChanged="@((string s) => SetConfigValue("Script", s))" Label="Command / Script (Supports {{var}})" Variant="Variant.Outlined" Lines="8" Class="mb-3" Style="font-family: monospace;" Disabled="IsRunning" />
+            }
+            else if (SelectedNode.Type == "LLM Action")
+            {
+                <MudSelect T="string" Label="Model" Variant="Variant.Outlined" Class="mb-3" Value="@GetConfigValue("Model")" ValueChanged="@((string s) => SetConfigValue("Model", s))" Disabled="IsRunning">
+                    <MudSelectItem Value="@("gpt-4")">GPT-4</MudSelectItem>
+                    <MudSelectItem Value="@("gpt-3.5-turbo")">GPT-3.5 Turbo</MudSelectItem>
+                    <MudSelectItem Value="@("claude-2")">Claude 2</MudSelectItem>
+                    <MudSelectItem Value="@("llama-3")">Llama 3</MudSelectItem>
+                </MudSelect>
+                <MudTextField Value="@GetConfigValue("SystemPrompt")" ValueChanged="@((string s) => SetConfigValue("SystemPrompt", s))" Label="System Prompt (Supports {{var}})" Variant="Variant.Outlined" Lines="3" Class="mb-3" Disabled="IsRunning" />
+                <MudTextField Value="@GetConfigValue("Instruction")" ValueChanged="@((string s) => SetConfigValue("Instruction", s))" Label="Prompt Instruction" Variant="Variant.Outlined" Lines="3" Class="mb-3" Disabled="IsRunning" />
+            }
+            else if (SelectedNode.Type == "ML Action")
+            {
+                <MudSelect T="string" Label="Model Type" Variant="Variant.Outlined" Class="mb-3" Value="@GetConfigValue("ModelType")" ValueChanged="@((string s) => SetConfigValue("ModelType", s))" Disabled="IsRunning">
+                    <MudSelectItem Value="@("classification")">Classification</MudSelectItem>
+                    <MudSelectItem Value="@("regression")">Regression</MudSelectItem>
+                    <MudSelectItem Value="@("anomaly")">Anomaly Detection</MudSelectItem>
+                    <MudSelectItem Value="@("nlp")">NLP Sentiment</MudSelectItem>
+                </MudSelect>
+                <MudTextField Value="@GetConfigValue("ModelPath")" ValueChanged="@((string s) => SetConfigValue("ModelPath", s))" Label="Model File Path (.zip) (Supports {{var}})" Variant="Variant.Outlined" Class="mb-3" Disabled="IsRunning" />
+            }
+            else if (SelectedNode.Type.Contains("Script"))
+            {
+                string defaultScript = SelectedNode.Type == "Python Script" 
+                    ? "def transform(data):\n    return data" 
+                    : (SelectedNode.Type == "JS Script" ? "function transform(data) { return data; }" : "return Input; // Access via Input, modify via Variables['x']");
+                    
+                <MudTextField Value="@(string.IsNullOrEmpty(GetConfigValue("Script")) ? defaultScript : GetConfigValue("Script"))" ValueChanged="@((string s) => SetConfigValue("Script", s))" Label="Code Editor (Use Variables object)" Variant="Variant.Outlined" Lines="8" Class="mb-3" Style="font-family: monospace;" Disabled="IsRunning" />
+            }
+            else
+            {
+                <MudTextField Value="@SelectedNode.Config" ValueChanged="@((string s) => SelectedNode.Config = s)" Label="Raw JSON / Code / Expression" Variant="Variant.Outlined" Lines="5" Class="mb-3" Disabled="IsRunning" />
+            }
+        }
+        else 
+        {
+            <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mt-4 pl-2">Select a node in the canvas to edit its properties.</MudText>
+        }
+    </MudItem>
+</MudGrid>
+
+@code {
+    [Parameter] public int? Id { get; set; }
+    
+    private DataFlow Flow { get; set; } = new DataFlow();
+    private AppDbContext? _dbContext;
+    private FlowEngine? _flowEngine;
+    
+    private List<FlowNode> Nodes = new List<FlowNode>();
+    private List<FlowVariable> Variables = new List<FlowVariable>();
+    private FlowNode? SelectedNode;
+    private string? _draggedType;
+
+    private bool IsRunning = false;
+    private CancellationTokenSource? _cts;
+    private List<string> ExecutionLogs = new List<string>();
+    private Dictionary<string, string> NodeStatuses = new Dictionary<string, string>();
+
+    // Models for internal serialization
+    public class FlowVariable
+    {
+        public string Name { get; set; } = "NewVar";
+        public string Type { get; set; } = "String";
+        public string InitialValue { get; set; } = "";
+    }
+
+    public class FlowDocument
+    {
+        public List<FlowNode> Nodes { get; set; } = new List<FlowNode>();
+        public List<FlowVariable> Variables { get; set; } = new List<FlowVariable>();
+    }
+
+    // Dynamic config helper
+    private string GetConfigValue(string key)
+    {
+        if (SelectedNode == null || string.IsNullOrEmpty(SelectedNode.Config)) return "";
+        try {
+            var doc = JsonNode.Parse(SelectedNode.Config);
+            return doc?[key]?.ToString() ?? "";
+        } catch { return ""; }
+    }
+
+    private void SetConfigValue(string key, string value)
+    {
+        if (SelectedNode == null) return;
+        JsonNode doc;
+        try {
+            doc = JsonNode.Parse(string.IsNullOrEmpty(SelectedNode.Config) ? "{}" : SelectedNode.Config) ?? new JsonObject();
+        } catch { doc = new JsonObject(); }
+        
+        doc[key] = value;
+        SelectedNode.Config = doc.ToJsonString();
+    }
+
+    private void AddVariable()
+    {
+        Variables.Add(new FlowVariable { Name = $"Var{Variables.Count + 1}" });
+        StateHasChanged();
+    }
+
+    private void RemoveVariable(FlowVariable v)
+    {
+        Variables.Remove(v);
+        StateHasChanged();
+    }
+
+    public class PaletteItem 
+    {
+        public string Category { get; set; }
+        public string SubCategory { get; set; }
+        public string Name { get; set; }
+        public string Icon { get; set; }
+
+        public PaletteItem(string category, string subCategory, string name, string icon)
+        {
+            Category = category;
+            SubCategory = subCategory;
+            Name = name;
+            Icon = icon;
+        }
+    }
+
+    private List<PaletteItem> PaletteItems = new List<PaletteItem>
+    {
+        new PaletteItem("Sources", "Databases", "SQL Server Source", Icons.Material.Filled.Storage),
+        new PaletteItem("Sources", "Databases", "PostgreSQL Source", Icons.Material.Filled.Storage),
+        new PaletteItem("Sources", "Databases", "MySQL Source", Icons.Material.Filled.Storage),
+        new PaletteItem("Sources", "Databases", "Oracle Source", Icons.Material.Filled.Storage),
+        new PaletteItem("Sources", "Databases", "MongoDB Source", Icons.Material.Filled.Storage),
+        new PaletteItem("Sources", "Databases", "SQLite Source", Icons.Material.Filled.Storage),
+        new PaletteItem("Sources", "Files", "CSV Source", Icons.Material.Filled.InsertDriveFile),
+        new PaletteItem("Sources", "Files", "JSON Source", Icons.Material.Filled.DataObject),
+        new PaletteItem("Sources", "Files", "XML Source", Icons.Material.Filled.Code),
+        new PaletteItem("Sources", "Files", "Parquet Source", Icons.Material.Filled.TableChart),
+        new PaletteItem("Sources", "APIs & Streaming", "REST API Source", Icons.Material.Filled.Api),
+        new PaletteItem("Sources", "APIs & Streaming", "Kafka Source", Icons.Material.Filled.SyncAlt),
+        new PaletteItem("Sources", "APIs & Streaming", "MQTT Source", Icons.Material.Filled.Message),
+
+        new PaletteItem("Transformations", "Core Operations", "Filter", Icons.Material.Filled.FilterAlt),
+        new PaletteItem("Transformations", "Core Operations", "Join", Icons.Material.Filled.MergeType),
+        new PaletteItem("Transformations", "Core Operations", "Union", Icons.Material.Filled.CallMerge),
+        new PaletteItem("Transformations", "Core Operations", "Aggregate", Icons.Material.Filled.Functions),
+        new PaletteItem("Transformations", "Core Operations", "Sort", Icons.Material.Filled.Sort),
+        new PaletteItem("Transformations", "Core Operations", "Deduplicate", Icons.Material.Filled.CleaningServices),
+        new PaletteItem("Transformations", "Scripting", "C# Script", Icons.Material.Filled.Code),
+        new PaletteItem("Transformations", "Scripting", "Python Script", Icons.Material.Filled.Javascript),
+        new PaletteItem("Transformations", "Scripting", "JS Script", Icons.Material.Filled.Javascript),
+        new PaletteItem("Transformations", "System", "PowerShell Script", Icons.Material.Filled.Terminal),
+        new PaletteItem("Transformations", "System", "Command Line", Icons.Material.Filled.Terminal),
+        new PaletteItem("Transformations", "System", "Set Variable Value", Icons.Material.Filled.EditNote),
+        new PaletteItem("Transformations", "AI & ML", "LLM Action", Icons.Material.Filled.AutoFixHigh),
+        new PaletteItem("Transformations", "AI & ML", "ML Action", Icons.Material.Filled.Memory),
+
+        new PaletteItem("Destinations", "Databases & Cloud", "SQL Destination", Icons.Material.Filled.Storage),
+        new PaletteItem("Destinations", "Databases & Cloud", "PostgreSQL Destination", Icons.Material.Filled.Storage),
+        new PaletteItem("Destinations", "Databases & Cloud", "Snowflake Destination", Icons.Material.Filled.Cloud),
+        new PaletteItem("Destinations", "Databases & Cloud", "BigQuery Destination", Icons.Material.Filled.Cloud),
+        new PaletteItem("Destinations", "Databases & Cloud", "Amazon S3 Destination", Icons.Material.Filled.CloudQueue),
+        new PaletteItem("Destinations", "Files & APIs", "CSV Destination", Icons.Material.Filled.InsertDriveFile),
+        new PaletteItem("Destinations", "Files & APIs", "JSON Destination", Icons.Material.Filled.DataObject),
+        new PaletteItem("Destinations", "Files & APIs", "REST API Destination", Icons.Material.Filled.Api)
+    };
+
+    protected override void OnInitialized()
+    {
+        _dbContext = App.ServiceProvider.GetRequiredService<AppDbContext>();
+        _flowEngine = App.ServiceProvider.GetRequiredService<FlowEngine>();
+
+        if (Id.HasValue)
+        {
+            var found = _dbContext.DataFlows.Find(Id.Value);
+            if (found != null) Flow = found;
+            
+            if (!string.IsNullOrEmpty(Flow.JsonDesign))
+            {
+                var json = Flow.JsonDesign.TrimStart();
+                if (json.StartsWith("[")) {
+                    // Backward compatible for early versions without variables
+                    Nodes = JsonSerializer.Deserialize<List<FlowNode>>(json) ?? new List<FlowNode>();
+                } else {
+                    var doc = JsonSerializer.Deserialize<FlowDocument>(json);
+                    if (doc != null) {
+                        Nodes = doc.Nodes;
+                        Variables = doc.Variables;
+                    }
+                }
+            }
+        }
+    }
+
+    private void OnDragStart(string type)
+    {
+        if(IsRunning) return;
+        _draggedType = type;
+    }
+
+    private void OnDrop()
+    {
+        if(IsRunning) return;
+        if (!string.IsNullOrEmpty(_draggedType))
+        {
+            AddNode(_draggedType);
+            _draggedType = null;
+        }
+    }
+
+    private void AddNode(string type)
+    {
+        if(IsRunning) return;
+        var node = new FlowNode { Id = Guid.NewGuid().ToString(), Name = type, Type = type };
+        Nodes.Add(node);
+        SelectedNode = node;
+        StateHasChanged();
+    }
+
+    private void RemoveNode(FlowNode node)
+    {
+        if(IsRunning) return;
+        Nodes.Remove(node);
+        NodeStatuses.Remove(node.Id);
+        if (SelectedNode == node) SelectedNode = null;
+    }
+
+    private void EditNode(FlowNode node)
+    {
+        SelectedNode = node;
+    }
+
+    private string GetNodeIcon(string type)
+    {
+        var match = PaletteItems.FirstOrDefault(p => p.Name == type);
+        return match != null ? match.Icon : Icons.Material.Filled.Settings;
+    }
+
+    private async Task RunFlow()
+    {
+        if (_flowEngine == null) return;
+        if (Nodes.Count == 0) {
+            Snackbar.Add("Add some nodes to the canvas first.", Severity.Warning);
+            return;
+        }
+
+        IsRunning = true;
+        _cts = new CancellationTokenSource();
+        ExecutionLogs.Clear();
+        NodeStatuses.Clear();
+        StateHasChanged();
+
+        try
+        {
+            // Convert definitions into executing dictionary format expected by the engine
+            var runVars = Variables.Select(v => new FlowEngine.FlowVariableDef { 
+                Name = v.Name, Type = v.Type, InitialValue = v.InitialValue 
+            }).ToList();
+
+            await _flowEngine.ExecuteNodesAsync(
+                Nodes,
+                runVars,
+                (nodeId, status) => {
+                    NodeStatuses[nodeId] = status;
+                    InvokeAsync(StateHasChanged);
+                },
+                (log) => {
+                    ExecutionLogs.Add(log);
+                    InvokeAsync(StateHasChanged);
+                },
+                _cts.Token
+            );
+
+            ExecutionLogs.Add($"\n[{DateTime.Now:HH:mm:ss}] All nodes executed successfully.");
+            Snackbar.Add("Pipeline execution completed successfully.", Severity.Success);
+        }
+        catch (OperationCanceledException)
+        {
+            ExecutionLogs.Add($"\n[{DateTime.Now:HH:mm:ss}] Pipeline execution stopped by user.");
+            Snackbar.Add("Pipeline execution stopped.", Severity.Warning);
+        }
+        catch (Exception ex)
+        {
+            ExecutionLogs.Add($"\n[{DateTime.Now:HH:mm:ss}] Pipeline execution failed: {ex.Message}");
+            Snackbar.Add("Pipeline execution failed.", Severity.Error);
+        }
+        finally
+        {
+            IsRunning = false;
+            StateHasChanged();
+        }
+    }
+
+    private void StopFlow()
+    {
+        if (_cts != null)
+        {
+            _cts.Cancel();
+        }
+    }
+
+    private void SaveFlow()
+    {
+        if (_dbContext == null) return;
+
+        var doc = new FlowDocument { Nodes = this.Nodes, Variables = this.Variables };
+        Flow.JsonDesign = JsonSerializer.Serialize(doc);
+        Flow.UpdatedAt = DateTime.Now;
+
+        if (Flow.Id == 0)
+        {
+            _dbContext.DataFlows.Add(Flow);
+        }
+        else
+        {
+            _dbContext.DataFlows.Update(Flow);
+        }
+        _dbContext.SaveChanges();
+        Snackbar.Add("Flow saved successfully", Severity.Success);
+        NavigationManager.NavigateTo("/");
+    }
+
+    private void ExportFlow()
+    {
+        var doc = new FlowDocument { Nodes = this.Nodes, Variables = this.Variables };
+        Flow.JsonDesign = JsonSerializer.Serialize(doc);
+        
+        Application.Current.Dispatcher.Invoke(() =>
+        {
+            var dlg = new Microsoft.Win32.SaveFileDialog
+            {
+                Filter = "JSON Files|*.json|All Files|*.*",
+                FileName = string.IsNullOrEmpty(Flow.Name) ? "flow.json" : $"{Flow.Name}.json"
+            };
+
+            if (dlg.ShowDialog() == true)
+            {
+                try
+                {
+                    var flowJson = JsonSerializer.Serialize(doc, new JsonSerializerOptions { WriteIndented = true });
+                    System.IO.File.WriteAllText(dlg.FileName, flowJson);
+                    
+                    Application.Current.Dispatcher.InvokeAsync(() => {
+                        Snackbar.Add("Flow exported successfully", Severity.Success);
+                    });
+                }
+                catch (Exception ex)
+                {
+                    Application.Current.Dispatcher.InvokeAsync(() => {
+                        Snackbar.Add($"Failed to export: {ex.Message}", Severity.Error);
+                    });
+                }
+            }
+        });
+    }
+
+    private void GoBack()
+    {
+        NavigationManager.NavigateTo("/");
+    }
+
+    public void Dispose()
+    {
+        _cts?.Cancel();
+        _cts?.Dispose();
+    }
+}

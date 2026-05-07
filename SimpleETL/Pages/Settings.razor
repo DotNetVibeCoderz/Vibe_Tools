@@ -1,0 +1,57 @@
+@page "/settings"
+@using MudBlazor
+@using SimpleETL.Services
+@inject SettingsService AppSettings
+@inject ISnackbar Snackbar
+@implements IDisposable
+
+<MudText Typo="Typo.h4" GutterBottom="true">Settings</MudText>
+
+<MudCard Elevation="2" Class="mb-4">
+    <MudCardHeader>
+        <CardHeaderContent>
+            <MudText Typo="Typo.h6">General</MudText>
+        </CardHeaderContent>
+    </MudCardHeader>
+    <MudCardContent>
+        <MudTextField T="string" Label="Application Data Path" Variant="Variant.Outlined" Disabled="true" Value="@AppDomain.CurrentDomain.BaseDirectory" />
+        <MudSwitch T="bool" Label="Enable Dark Mode" Color="Color.Primary" Class="mt-4" Value="AppSettings.IsDarkMode" ValueChanged="OnDarkModeChanged" />
+    </MudCardContent>
+</MudCard>
+
+<MudCard Elevation="2" Class="mb-4">
+    <MudCardHeader>
+        <CardHeaderContent>
+            <MudText Typo="Typo.h6">API Configuration</MudText>
+        </CardHeaderContent>
+    </MudCardHeader>
+    <MudCardContent>
+        <MudNumericField T="int" Label="REST API Port (Restart Required)" Variant="Variant.Outlined" Value="AppSettings.ApiPort" ValueChanged="OnApiPortChanged" />
+    </MudCardContent>
+</MudCard>
+
+@code {
+    protected override void OnInitialized()
+    {
+        AppSettings.OnChange += StateHasChanged;
+    }
+
+    public void Dispose()
+    {
+        AppSettings.OnChange -= StateHasChanged;
+    }
+
+    private void OnDarkModeChanged(bool isDark)
+    {
+        AppSettings.IsDarkMode = isDark;
+        AppSettings.Save();
+        Snackbar.Add("Theme updated", Severity.Info);
+    }
+
+    private void OnApiPortChanged(int port)
+    {
+        AppSettings.ApiPort = port;
+        AppSettings.Save();
+        Snackbar.Add("API Port updated. Please restart the application for changes to take effect.", Severity.Warning);
+    }
+}

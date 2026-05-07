@@ -1,0 +1,156 @@
+@page "/"
+@using SimpleETL.Models
+@using SimpleETL.Data
+@using SimpleETL.Services
+@using Microsoft.Extensions.DependencyInjection
+@using System.IO
+@using System.Text.Json
+@inject ISnackbar Snackbar
+@inject NavigationManager NavigationManager
+
+<MudText Typo="Typo.h4" GutterBottom="true">Data Flows</MudText>
+
+<MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="CreateNew" Class="mb-4">Create New Flow</MudButton>
+<MudButton Variant="Variant.Outlined" Color="Color.Secondary" OnClick="ImportFlow" Class="mb-4 ml-2">Import Flow</MudButton>
+
+@if (_flows == null)
+{
+    <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+}
+else if (!_flows.Any())
+{
+    <MudText>No data flows found. Create one to get started.</MudText>
+}
+else
+{
+    <MudTable Items="@_flows" Hover="true" Striped="true" Dense="true" Elevation="1">
+        <HeaderContent>
+            <MudTh>ID</MudTh>
+            <MudTh>Name</MudTh>
+            <MudTh>Description</MudTh>
+            <MudTh>Last Updated</MudTh>
+            <MudTh>Scheduled</MudTh>
+            <MudTh>Actions</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="ID">@context.Id</MudTd>
+            <MudTd DataLabel="Name">@context.Name</MudTd>
+            <MudTd DataLabel="Description">@context.Description</MudTd>
+            <MudTd DataLabel="Last Updated">@context.UpdatedAt.ToString("g")</MudTd>
+            <MudTd DataLabel="Scheduled">
+                @if (context.IsScheduled)
+                {
+                    <MudChip Color="Color.Success" Size="Size.Small">@context.CronExpression</MudChip>
+                }
+                else
+                {
+                    <MudChip Size="Size.Small">Manual</MudChip>
+                }
+            </MudTd>
+            <MudTd DataLabel="Actions">
+                <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Info" OnClick="@(() => EditFlow(context.Id))" />
+                <MudIconButton Icon="@Icons.Material.Filled.PlayArrow" Color="Color.Success" OnClick="@(() => RunFlow(context.Id))" />
+                <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" OnClick="@(() => DeleteFlow(context.Id))" />
+            </MudTd>
+        </RowTemplate>
+    </MudTable>
+}
+
+@code {
+    private List<DataFlow>? _flows;
+    private AppDbContext? _dbContext;
+    private FlowEngine? _flowEngine;
+
+    protected override void OnInitialized()
+    {
+        _dbContext = App.ServiceProvider.GetRequiredService<AppDbContext>();
+        _flowEngine = App.ServiceProvider.GetRequiredService<FlowEngine>();
+        LoadFlows();
+    }
+
+    private void LoadFlows()
+    {
+        if (_dbContext != null)
+        {
+            _flows = _dbContext.DataFlows.ToList();
+            StateHasChanged();
+        }
+    }
+
+    private void CreateNew()
+    {
+        NavigationManager.NavigateTo("/designer");
+    }
+
+    private void EditFlow(int id)
+    {
+        NavigationManager.NavigateTo($"/designer/{id}");
+    }
+
+    private async Task RunFlow(int id)
+    {
+        Snackbar.Add($"Triggered flow {id}", Severity.Success);
+        if (_flowEngine != null)
+        {
+            await _flowEngine.ExecuteFlowAsync(id);
+        }
+        Snackbar.Add($"Flow {id} execution finished", Severity.Info);
+    }
+
+    private void DeleteFlow(int id)
+    {
+        if (_dbContext != null)
+        {
+            var flow = _dbContext.DataFlows.Find(id);
+            if (flow != null)
+            {
+                _dbContext.DataFlows.Remove(flow);
+                _dbContext.SaveChanges();
+                LoadFlows();
+                Snackbar.Add("Flow deleted", Severity.Info);
+            }
+        }
+    }
+
+    private void ImportFlow()
+    {
+        System.Windows.Application.Current.Dispatcher.Invoke(() =>
+        {
+            var dlg = new Microsoft.Win32.OpenFileDialog
+            {
+                Filter = "JSON Files|*.json|All Files|*.*"
+            };
+
+            if (dlg.ShowDialog() == true)
+            {
+                try
+                {
+                    var json = File.ReadAllText(dlg.FileName);
+                    var flow = JsonSerializer.Deserialize<DataFlow>(json);
+                    
+                    if (flow != null && _dbContext != null)
+                    {
+                        flow.Id = 0; // Reset ID for new import
+                        flow.Name = $"{flow.Name} (Imported)";
+                        flow.CreatedAt = DateTime.Now;
+                        flow.UpdatedAt = DateTime.Now;
+                        
+                        _dbContext.DataFlows.Add(flow);
+                        _dbContext.SaveChanges();
+                        
+                        System.Windows.Application.Current.Dispatcher.InvokeAsync(() => {
+                            LoadFlows();
+                            Snackbar.Add("Flow imported successfully", Severity.Success);
+                        });
+                    }
+                }
+                catch (Exception ex)
+                {
+                    System.Windows.Application.Current.Dispatcher.InvokeAsync(() => {
+                        Snackbar.Add($"Failed to import: {ex.Message}", Severity.Error);
+                    });
+                }
+            }
+        });
+    }
+}

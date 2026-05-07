@@ -1,0 +1,66 @@
+@page "/monitoring"
+@using SimpleETL.Models
+@using SimpleETL.Data
+@using Microsoft.Extensions.DependencyInjection
+@inject ISnackbar Snackbar
+
+<MudText Typo="Typo.h4" GutterBottom="true">Job Monitoring &amp; Logs</MudText>
+
+@if (_logs == null)
+{
+    <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+}
+else if (!_logs.Any())
+{
+    <MudText>No job logs found.</MudText>
+}
+else
+{
+    <MudTable Items="@_logs" Hover="true" Striped="true" Dense="true" Elevation="1">
+        <HeaderContent>
+            <MudTh>Job ID</MudTh>
+            <MudTh>Flow ID</MudTh>
+            <MudTh>Status</MudTh>
+            <MudTh>Start Time</MudTh>
+            <MudTh>End Time</MudTh>
+            <MudTh>Error Message</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="Job ID">@context.Id</MudTd>
+            <MudTd DataLabel="Flow ID">@context.DataFlowId</MudTd>
+            <MudTd DataLabel="Status">
+                @if (context.Status == "Success")
+                {
+                    <MudChip Color="Color.Success" Size="Size.Small">@context.Status</MudChip>
+                }
+                else if (context.Status == "Failed")
+                {
+                    <MudChip Color="Color.Error" Size="Size.Small">@context.Status</MudChip>
+                }
+                else
+                {
+                    <MudChip Color="Color.Warning" Size="Size.Small">@context.Status</MudChip>
+                }
+            </MudTd>
+            <MudTd DataLabel="Start Time">@context.StartTime.ToString("g")</MudTd>
+            <MudTd DataLabel="End Time">@context.EndTime?.ToString("g")</MudTd>
+            <MudTd DataLabel="Error Message">@context.ErrorMessage</MudTd>
+        </RowTemplate>
+    </MudTable>
+}
+
+@code {
+    private List<JobLog> _logs;
+    private AppDbContext _dbContext;
+
+    protected override void OnInitialized()
+    {
+        _dbContext = App.ServiceProvider.GetRequiredService<AppDbContext>();
+        LoadLogs();
+    }
+
+    private void LoadLogs()
+    {
+        _logs = _dbContext.JobLogs.OrderByDescending(l => l.StartTime).ToList();
+    }
+}

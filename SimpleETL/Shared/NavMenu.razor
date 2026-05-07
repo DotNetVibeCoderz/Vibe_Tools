@@ -1,0 +1,15 @@
+<MudNavMenu>
+    <MudNavLink Href="/" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Dashboard">Data Flows</MudNavLink>
+    <MudNavLink Href="/designer" Icon="@Icons.Material.Filled.AccountTree">Designer</MudNavLink>
+    <MudNavLink Href="/monitoring" Icon="@Icons.Material.Filled.MonitorHeart">Monitoring &amp; Logs</MudNavLink>
+    <MudNavLink Href="/settings" Icon="@Icons.Material.Filled.Settings">Settings</MudNavLink>
+    <MudNavLink Href="/about" Icon="@Icons.Material.Filled.Info">About</MudNavLink>
+    <MudNavLink OnClick="ExitApp" Icon="@Icons.Material.Filled.ExitToApp">Exit</MudNavLink>
+</MudNavMenu>
+
+@code {
+    private void ExitApp()
+    {
+        System.Windows.Application.Current.Shutdown();
+    }
+}
